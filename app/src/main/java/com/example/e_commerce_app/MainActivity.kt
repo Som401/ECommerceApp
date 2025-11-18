@@ -1,62 +1,50 @@
 package com.example.e_commerce_app
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
+import androidx.fragment.app.Fragment
 import com.example.e_commerce_app.databinding.ActivityMainBinding
-import com.google.firebase.FirebaseApp
-import com.google.firebase.FirebaseOptions
-import android.util.Log
+import com.example.e_commerce_app.ui.fragments.HomeFragment
+import com.example.e_commerce_app.ui.fragments.ShopFragment
+import com.example.e_commerce_app.ui.fragments.BagFragment
+import com.example.e_commerce_app.ui.fragments.FavoritesFragment
+import com.example.e_commerce_app.ui.fragments.ProfileFragment
+import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize UI
-        setSupportActionBar(binding.toolbar)
-
-        // 🔥 Check Firebase initialization
-        val app = FirebaseApp.initializeApp(this)
-        if (app == null) {
-            Log.e("FIREBASE", "❌ Firebase NOT initialized")
-        } else {
-            Log.d("FIREBASE", "✅ Firebase successfully initialized: ${app.name}")
+        // Set up bottom navigation
+        binding.bottomNavigation.setOnItemSelectedListener(navListener)
+        
+        // Load home fragment by default
+        if (savedInstanceState == null) {
+            loadFragment(HomeFragment())
         }
     }
 
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+    private val navListener = NavigationBarView.OnItemSelectedListener { item ->
+        val fragment: Fragment = when (item.itemId) {
+            R.id.nav_home -> HomeFragment()
+            R.id.nav_shop -> ShopFragment()
+            R.id.nav_bag -> BagFragment()
+            R.id.nav_favorites -> FavoritesFragment()
+            R.id.nav_profile -> ProfileFragment()
+            else -> HomeFragment()
         }
+        loadFragment(fragment)
+        true
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
     }
 }
