@@ -8,11 +8,10 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.e_commerce_app.data.cache.ProductCache
 import com.example.e_commerce_app.data.model.Product
-import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.FragmentShopBinding
 import com.example.e_commerce_app.ui.adapters.ProductGridAdapter
-import com.example.e_commerce_app.utils.Extensions.showToast
 import kotlinx.coroutines.launch
 
 class ShopFragment : Fragment() {
@@ -21,7 +20,6 @@ class ShopFragment : Fragment() {
     private val binding get() = _binding!!
     
     private lateinit var productAdapter: ProductGridAdapter
-    private val repository = ProductRepository()
     private var allProducts = listOf<Product>()
     
     override fun onCreateView(
@@ -72,7 +70,8 @@ class ShopFragment : Fragment() {
         binding.progressBar.visibility = View.VISIBLE
         
         lifecycleScope.launch {
-            allProducts = repository.getAllProducts()
+            // Use ProductCache - fetches only once
+            allProducts = ProductCache.getProducts()
             
             binding.progressBar.visibility = View.GONE
             

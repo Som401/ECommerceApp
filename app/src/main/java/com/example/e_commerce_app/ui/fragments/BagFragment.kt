@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.e_commerce_app.data.cache.CartCache
 import com.example.e_commerce_app.data.model.CartItem
-import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.FragmentBagBinding
 import com.example.e_commerce_app.ui.adapters.CartAdapter
 import com.example.e_commerce_app.utils.Extensions.showToast
@@ -19,7 +19,6 @@ class BagFragment : Fragment() {
     private val binding get() = _binding!!
     
     private lateinit var cartAdapter: CartAdapter
-    private val repository = ProductRepository()
     private var cartItems = mutableListOf<CartItem>()
     
     override fun onCreateView(
@@ -65,17 +64,23 @@ class BagFragment : Fragment() {
     }
     
     private fun loadCartItems() {
+        android.util.Log.d("CartDebug", "BagFragment: Loading cart items from cache...")
         lifecycleScope.launch {
             cartItems.clear()
-            cartItems.addAll(repository.getCartItems())
+            // Use CartCache - fetches only once, then uses cached data
+            val items = CartCache.getCartItems()
+            android.util.Log.d("CartDebug", "BagFragment: Received ${items.size} items from cache")
+            cartItems.addAll(items)
             cartAdapter.notifyDataSetChanged()
             updateUI()
+            android.util.Log.d("CartDebug", "BagFragment: UI updated with ${cartItems.size} items")
         }
     }
     
     private fun updateQuantity(item: CartItem, newQuantity: Int) {
         lifecycleScope.launch {
-            val success = repository.updateCartItemQuantity(item.id, newQuantity)
+            // Update via CartCache - updates both local cache and Firebase
+            val success = CartCache.updateQuantity(item.id, newQuantity)
             if (success) {
                 loadCartItems()
             } else {
@@ -86,7 +91,8 @@ class BagFragment : Fragment() {
     
     private fun removeItem(item: CartItem) {
         lifecycleScope.launch {
-            val success = repository.removeFromCart(item.id)
+            // Remove via CartCache - updates both local cache and Firebase
+            val success = CartCache.removeFromCart(item.id)
             if (success) {
                 requireContext().showToast("Item removed")
                 loadCartItems()
@@ -114,6 +120,12 @@ class BagFragment : Fragment() {
             binding.tvShipping.text = "$${"%.2f".format(shipping)}"
             binding.tvTotal.text = "$${"%.2f".format(total)}"
         }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reload cart to reflect any changes
+        loadCartItems()
     }
     
     override fun onDestroyView() {

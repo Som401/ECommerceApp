@@ -3,6 +3,7 @@ package com.example.e_commerce_app.ui.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.e_commerce_app.data.model.CartItem
 import com.example.e_commerce_app.databinding.ItemCartBinding
 
@@ -21,13 +22,25 @@ class CartAdapter(
                 tvProductDetails.text = "Size: ${item.selectedSize}, Color: ${item.selectedColor}"
                 tvPrice.text = "$${item.price}"
                 tvQuantity.text = item.quantity.toString()
+                
+                // Load product image
+                if (item.productImage.isNotEmpty()) {
+                    Glide.with(ivProductImage.context)
+                        .load(item.productImage)
+                        .placeholder(android.R.drawable.ic_menu_gallery)
+                        .error(android.R.drawable.ic_menu_report_image)
+                        .into(ivProductImage)
+                }
 
                 btnIncrease.setOnClickListener {
                     onQuantityChanged(item, item.quantity + 1)
                 }
 
                 btnDecrease.setOnClickListener {
-                    if (item.quantity > 1) {
+                    // Delete item if quantity is 1, otherwise decrease
+                    if (item.quantity == 1) {
+                        onRemoveClick(item)
+                    } else {
                         onQuantityChanged(item, item.quantity - 1)
                     }
                 }

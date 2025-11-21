@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.e_commerce_app.data.cache.ProductCache
 import com.example.e_commerce_app.data.model.Product
-import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.FragmentHomeBinding
 import com.example.e_commerce_app.ui.activities.ProductDetailsActivity
 import com.example.e_commerce_app.ui.adapters.ProductAdapter
@@ -26,7 +26,6 @@ class HomeFragment : Fragment() {
     private lateinit var newProductsAdapter: ProductAdapter
     private lateinit var featuredProductsAdapter: ProductAdapter
     
-    private val repository = ProductRepository()
     private val newProducts = mutableListOf<Product>()
     private val featuredProducts = mutableListOf<Product>()
 
@@ -141,9 +140,9 @@ class HomeFragment : Fragment() {
         
         lifecycleScope.launch {
             try {
-                val allProducts = repository.getAllProducts()
-                android.util.Log.d("ProductDebug", "console.log products = ${allProducts}")
-                println("console.log products = ${allProducts}")
+                // Use ProductCache - fetches only once
+                val allProducts = ProductCache.getProducts()
+                android.util.Log.d("ProductDebug", "HomeFragment loaded ${allProducts.size} products from cache")
                 
                 // Split products into two halves deterministically
                 val midpoint = allProducts.size / 2
@@ -171,8 +170,12 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // For debugging ensure products printed when returning to Home
-        loadSampleData()
+        // Only reload if cache is empty (avoids redundant fetches)
+        lifecycleScope.launch {
+            if (newProductsAdapter.itemCount == 0 || featuredProductsAdapter.itemCount == 0) {
+                loadSampleData()
+            }
+        }
     }
 
     override fun onDestroyView() {

@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.e_commerce_app.data.cache.WishlistCache
 import com.example.e_commerce_app.data.model.Product
-import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.FragmentFavoritesBinding
 import com.example.e_commerce_app.ui.adapters.ProductGridAdapter
 import com.google.firebase.auth.FirebaseAuth
@@ -18,7 +18,6 @@ import kotlinx.coroutines.launch
 class FavoritesFragment : Fragment() {
     private var _binding: FragmentFavoritesBinding? = null
     private val binding get() = _binding!!
-    private val productRepository = ProductRepository()
     private val auth = FirebaseAuth.getInstance()
     private lateinit var adapter: ProductGridAdapter
     private val wishlistProducts = mutableListOf<Product>()
@@ -53,23 +52,30 @@ class FavoritesFragment : Fragment() {
     }
 
     private fun loadWishlist() {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUser?.uid
+        android.util.Log.d("WishlistDebug", "FavoritesFragment: Loading wishlist from cache for userId=$userId")
+        
+        if (userId == null) {
+            android.util.Log.e("WishlistDebug", "FavoritesFragment: No user logged in!")
+            return
+        }
+        
         binding.progressBar.visibility = View.VISIBLE
 
         lifecycleScope.launch {
             try {
-                val productIds = productRepository.getWishlistItems()
-                wishlistProducts.clear()
+                // Use WishlistCache - fetches only once, then uses cached data
+                val products = WishlistCache.getWishlistProducts()
+                android.util.Log.d("WishlistDebug", "FavoritesFragment: Received ${products.size} products from cache")
                 
-                // Fetch full product details for each wishlist item
-                for (productId in productIds) {
-                    val product = productRepository.getProductById(productId)
-                    product?.let { wishlistProducts.add(it) }
-                }
+                wishlistProducts.clear()
+                wishlistProducts.addAll(products)
                 
                 adapter.notifyDataSetChanged()
                 updateEmptyState()
+                android.util.Log.d("WishlistDebug", "FavoritesFragment: UI updated with ${wishlistProducts.size} products")
             } catch (e: Exception) {
+                android.util.Log.e("WishlistDebug", "FavoritesFragment: Error loading wishlist: ${e.message}", e)
                 e.printStackTrace()
             } finally {
                 binding.progressBar.visibility = View.GONE
@@ -80,7 +86,8 @@ class FavoritesFragment : Fragment() {
     private fun removeFromWishlist(product: Product) {
         lifecycleScope.launch {
             try {
-                productRepository.removeFromWishlist(product.id)
+                // Remove via WishlistCache - updates both local cache and Firebase
+                WishlistCache.removeFromWishlist(product.id)
                 wishlistProducts.remove(product)
                 adapter.notifyDataSetChanged()
                 updateEmptyState()
@@ -102,6 +109,7 @@ class FavoritesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Always reload to reflect changes from other screens
         loadWishlist()
     }
 

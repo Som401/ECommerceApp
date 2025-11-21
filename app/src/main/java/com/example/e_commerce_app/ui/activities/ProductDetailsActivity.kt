@@ -16,9 +16,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.e_commerce_app.R
+import com.example.e_commerce_app.data.cache.CartCache
+import com.example.e_commerce_app.data.cache.ProductCache
+import com.example.e_commerce_app.data.cache.WishlistCache
 import com.example.e_commerce_app.data.model.CartItem
 import com.example.e_commerce_app.data.model.Product
-import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.ActivityProductDetailsBinding
 import com.example.e_commerce_app.ui.adapters.ProductAdapter
 import com.example.e_commerce_app.utils.FirebaseManager
@@ -31,7 +33,6 @@ import java.util.UUID
 class ProductDetailsActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityProductDetailsBinding
-    private val repository = ProductRepository()
     private val auth = FirebaseAuth.getInstance()
     
     private var product: Product? = null
@@ -74,28 +75,19 @@ class ProductDetailsActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                product = repository.getProductById(productId)
+                // Use ProductCache - fetches only once
+                product = ProductCache.getProductById(productId)
                 if (product != null) {
                     displayProduct(product!!)
+                } else {
+                    android.util.Log.w("ProductDebug", "Product not found for id=$productId")
                 }
                 checkWishlistStatus(productId)
             } catch (e: Exception) {
+                android.util.Log.e("ProductDebug", "Error loading product: ${e.message}", e)
                 Toast.makeText(this@ProductDetailsActivity, "Error loading product", Toast.LENGTH_SHORT).show()
             } finally {
                 binding.progressBar.visibility = View.GONE
-            }
-        }
-    }
-    
-    private fun loadRecommendedProducts() {
-        lifecycleScope.launch {
-            try {
-                // For now, just fetch all products and take first 5 as recommended
-                // In a real app, this would be a smarter query
-                val allProducts = repository.getAllProducts()
-                recommendedAdapter.updateProducts(allProducts.take(5))
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }
@@ -135,19 +127,9 @@ class ProductDetailsActivity : AppCompatActivity() {
                 val chip = Chip(this@ProductDetailsActivity)
                 chip.text = size
                 chip.isCheckable = true
-                chip.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        selectedSize = size
-                        // Uncheck other chips
-                        for (i in 0 until chipGroupSizes.childCount) {
-                            val otherChip = chipGroupSizes.getChildAt(i) as? Chip
-                            if (otherChip != chip) {
-                                otherChip?.isChecked = false
-                            }
-                        }
-                    } else if (selectedSize == size) {
-                        selectedSize = null
-                    }
+                chip.setOnClickListener {
+                    selectedSize = size
+                    android.util.Log.d("ProductDebug", "Selected size: $size")
                 }
                 chipGroupSizes.addView(chip)
             }
@@ -158,19 +140,9 @@ class ProductDetailsActivity : AppCompatActivity() {
                 val chip = Chip(this@ProductDetailsActivity)
                 chip.text = color
                 chip.isCheckable = true
-                chip.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked) {
-                        selectedColor = color
-                        // Uncheck other chips
-                        for (i in 0 until chipGroupColors.childCount) {
-                            val otherChip = chipGroupColors.getChildAt(i) as? Chip
-                            if (otherChip != chip) {
-                                otherChip?.isChecked = false
-                            }
-                        }
-                    } else if (selectedColor == color) {
-                        selectedColor = null
-                    }
+                chip.setOnClickListener {
+                    selectedColor = color
+                    android.util.Log.d("ProductDebug", "Selected color: $color")
                 }
                 chipGroupColors.addView(chip)
             }
@@ -198,10 +170,14 @@ class ProductDetailsActivity : AppCompatActivity() {
             val discount = intent.getIntExtra("PRODUCT_DISCOUNT_FALLBACK", 0)
             if (discount > 0) {
                 binding.tvProductPrice.text = "$${price - (price * discount / 100)}"
-                binding.tvOriginalPrice.text = "$${price}"; binding.tvOriginalPrice.visibility = View.VISIBLE
-                binding.tvDiscount.text = "${discount}% OFF"; binding.tvDiscount.visibility = View.VISIBLE
+                binding.tvOriginalPrice.text = "$${price}"
+                binding.tvOriginalPrice.visibility = View.VISIBLE
+                binding.tvDiscount.text = "${discount}% OFF"
+                binding.tvDiscount.visibility = View.VISIBLE
             } else {
-                binding.tvProductPrice.text = "$${price}"; binding.tvOriginalPrice.visibility = View.GONE; binding.tvDiscount.visibility = View.GONE
+                binding.tvProductPrice.text = "$${price}"
+                binding.tvOriginalPrice.visibility = View.GONE
+                binding.tvDiscount.visibility = View.GONE
             }
             val stock = intent.getIntExtra("PRODUCT_STOCK_FALLBACK", 0)
             binding.tvStock.text = if (stock > 0) "In Stock (${stock})" else "Out of Stock"
@@ -213,7 +189,8 @@ class ProductDetailsActivity : AppCompatActivity() {
     private fun checkWishlistStatus(productId: String) {
         lifecycleScope.launch {
             try {
-                isInWishlist = repository.isInWishlist(productId)
+                // Use WishlistCache to check status
+                isInWishlist = WishlistCache.isInWishlist(productId)
                 updateWishlistIcon()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -240,21 +217,45 @@ class ProductDetailsActivity : AppCompatActivity() {
     private fun toggleWishlist() {
         val prod = product ?: return
         
+        android.util.Log.d("ProductDebug", "Toggle wishlist for product: ${prod.id}, current state: $isInWishlist")
+        
         lifecycleScope.launch {
             // Optimistic UI
             val previous = isInWishlist
             isInWishlist = !previous
             updateWishlistIcon()
+            
             try {
-                if (previous) {
-                    repository.removeFromWishlist(prod.id)
-                    Toast.makeText(this@ProductDetailsActivity, "Removed from wishlist", Toast.LENGTH_SHORT).show()
+                val success = if (previous) {
+                    android.util.Log.d("ProductDebug", "Removing from wishlist...")
+                    // Use WishlistCache - updates both cache and Firebase
+                    val result = WishlistCache.removeFromWishlist(prod.id)
+                    android.util.Log.d("ProductDebug", "Remove from wishlist returned: $result")
+                    result
                 } else {
-                    repository.addToWishlist(prod.id)
-                    Toast.makeText(this@ProductDetailsActivity, "Added to wishlist", Toast.LENGTH_SHORT).show()
+                    android.util.Log.d("ProductDebug", "Adding to wishlist...")
+                    // Use WishlistCache - updates both cache and Firebase
+                    val result = WishlistCache.addToWishlist(prod.id)
+                    android.util.Log.d("ProductDebug", "Add to wishlist returned: $result")
+                    result
+                }
+                
+                if (success) {
+                    if (previous) {
+                        Toast.makeText(this@ProductDetailsActivity, "Removed from wishlist", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@ProductDetailsActivity, "Added to wishlist", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // Revert on failure
+                    android.util.Log.e("ProductDebug", "Wishlist operation failed, reverting UI")
+                    isInWishlist = previous
+                    updateWishlistIcon()
+                    Toast.makeText(this@ProductDetailsActivity, "Failed to update wishlist", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
                 // Revert state
+                android.util.Log.e("ProductDebug", "Exception in toggleWishlist: ${e.message}", e)
                 isInWishlist = previous
                 updateWishlistIcon()
                 Toast.makeText(this@ProductDetailsActivity, "Error updating wishlist", Toast.LENGTH_SHORT).show()
@@ -262,8 +263,11 @@ class ProductDetailsActivity : AppCompatActivity() {
         }
     }
     
-    private fun showAddToCartBottomSheet() {
-        val prod = product ?: return
+    private fun addToCartDirectly() {
+        val prod = product ?: run {
+            Toast.makeText(this, "Product not loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
         
         if (selectedSize == null) {
             Toast.makeText(this, "Please select a size", Toast.LENGTH_SHORT).show()
@@ -275,46 +279,16 @@ class ProductDetailsActivity : AppCompatActivity() {
             return
         }
         
-        val bottomSheetDialog = BottomSheetDialog(this)
-        val bottomSheetView = LayoutInflater.from(this).inflate(
-            R.layout.fragment_add_to_bag,
-            null
-        )
+        val userId = auth.currentUser?.uid
+        android.util.Log.d("ProductDebug", "Current user ID: $userId")
         
-        val etQuantity = bottomSheetView.findViewById<EditText>(R.id.quantityEtBottom)
-        var quantity = 1
-        etQuantity.setText(quantity.toString())
-        
-        bottomSheetView.findViewById<View>(R.id.minusLayout).setOnClickListener {
-            if (quantity > 1) {
-                quantity--
-                etQuantity.setText(quantity.toString())
-            }
-        }
-        
-        bottomSheetView.findViewById<View>(R.id.plusLayout).setOnClickListener {
-            if (quantity < 10) { // Limit max quantity
-                quantity++
-                etQuantity.setText(quantity.toString())
-            }
-        }
-        
-        bottomSheetView.findViewById<View>(R.id.addToCart_BottomSheet).setOnClickListener {
-            addToCart(quantity)
-            bottomSheetDialog.dismiss()
-        }
-        
-        bottomSheetDialog.setContentView(bottomSheetView)
-        bottomSheetDialog.show()
-    }
-    
-    private fun addToCart(quantity: Int) {
-        val prod = product ?: return
-        val userId = auth.currentUser?.uid ?: run {
+        if (userId == null) {
+            android.util.Log.e("ProductDebug", "User not logged in!")
             Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
             return
         }
         
+        val quantity = 1
         val cartItem = CartItem(
             id = UUID.randomUUID().toString(),
             userId = userId,
@@ -327,15 +301,22 @@ class ProductDetailsActivity : AppCompatActivity() {
             productImage = prod.imageUrl
         )
         
+        android.util.Log.d("ProductDebug", "Cart item to add: $cartItem")
+        
         lifecycleScope.launch {
             try {
-                val success = repository.addToCart(cartItem)
+                android.util.Log.d("ProductDebug", "Calling CartCache.addToCart()...")
+                // Use CartCache - updates both cache and Firebase
+                val success = CartCache.addToCart(cartItem)
+                android.util.Log.d("ProductDebug", "addToCart returned: $success")
+                
                 if (success) {
-                    Toast.makeText(this@ProductDetailsActivity, "Added to cart", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ProductDetailsActivity, "Added to cart", Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(this@ProductDetailsActivity, "Failed to add to cart", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
+                android.util.Log.e("ProductDebug", "Error adding to cart: ${e.message}", e)
                 Toast.makeText(this@ProductDetailsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }

@@ -69,24 +69,54 @@ class ProductRepository {
     // Cart Operations
     suspend fun addToCart(cartItem: CartItem): Boolean {
         return try {
-            val userId = FirebaseManager.currentUser?.uid ?: return false
+            val userId = FirebaseManager.currentUser?.uid
+            android.util.Log.d("CartDebug", "addToCart called - userId=$userId, cartItem=$cartItem")
+            
+            if (userId == null) {
+                android.util.Log.e("CartDebug", "No user logged in!")
+                return false
+            }
+            
             val itemWithUser = cartItem.copy(userId = userId)
+            android.util.Log.d("CartDebug", "Saving cart item to Firestore: ${itemWithUser}")
+            
             cartRef.document(cartItem.id).set(itemWithUser).await()
+            android.util.Log.d("CartDebug", "Successfully added to cart!")
             true
         } catch (e: Exception) {
+            android.util.Log.e("CartDebug", "Error adding to cart: ${e.message}", e)
+            e.printStackTrace()
             false
         }
     }
     
     suspend fun getCartItems(): List<CartItem> {
         return try {
-            val userId = FirebaseManager.currentUser?.uid ?: return emptyList()
+            val userId = FirebaseManager.currentUser?.uid
+            android.util.Log.d("CartDebug", "getCartItems - userId=$userId")
+            
+            if (userId == null) {
+                android.util.Log.e("CartDebug", "getCartItems - No user logged in!")
+                return emptyList()
+            }
+            
+            android.util.Log.d("CartDebug", "Querying cart items for userId=$userId")
             val snapshot = cartRef
                 .whereEqualTo("userId", userId)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject(CartItem::class.java) }
+            
+            android.util.Log.d("CartDebug", "Query returned ${snapshot.documents.size} documents")
+            val items = snapshot.documents.mapNotNull { 
+                val item = it.toObject(CartItem::class.java)
+                android.util.Log.d("CartDebug", "Parsed cart item: $item")
+                item
+            }
+            android.util.Log.d("CartDebug", "Returning ${items.size} cart items")
+            items
         } catch (e: Exception) {
+            android.util.Log.e("CartDebug", "Error getting cart items: ${e.message}", e)
+            e.printStackTrace()
             emptyList()
         }
     }
@@ -125,41 +155,81 @@ class ProductRepository {
     // Wishlist Operations
     suspend fun addToWishlist(productId: String): Boolean {
         return try {
-            val userId = FirebaseManager.currentUser?.uid ?: return false
+            val userId = FirebaseManager.currentUser?.uid
+            android.util.Log.d("WishlistDebug", "addToWishlist called - userId=$userId, productId=$productId")
+            
+            if (userId == null) {
+                android.util.Log.e("WishlistDebug", "No user logged in!")
+                return false
+            }
+            
             val wishlistItem = WishlistItem(
                 id = "${userId}_$productId",
                 productId = productId,
                 userId = userId
             )
+            android.util.Log.d("WishlistDebug", "Saving wishlist item: $wishlistItem")
+            
             wishlistRef.document(wishlistItem.id).set(wishlistItem).await()
+            android.util.Log.d("WishlistDebug", "Successfully added to wishlist!")
             true
         } catch (e: Exception) {
+            android.util.Log.e("WishlistDebug", "Error adding to wishlist: ${e.message}", e)
+            e.printStackTrace()
             false
         }
     }
     
     suspend fun removeFromWishlist(productId: String): Boolean {
         return try {
-            val userId = FirebaseManager.currentUser?.uid ?: return false
+            val userId = FirebaseManager.currentUser?.uid
+            android.util.Log.d("WishlistDebug", "removeFromWishlist called - userId=$userId, productId=$productId")
+            
+            if (userId == null) {
+                android.util.Log.e("WishlistDebug", "No user logged in!")
+                return false
+            }
+            
             val id = "${userId}_$productId"
+            android.util.Log.d("WishlistDebug", "Deleting wishlist item with id: $id")
+            
             wishlistRef.document(id).delete().await()
+            android.util.Log.d("WishlistDebug", "Successfully removed from wishlist!")
             true
         } catch (e: Exception) {
+            android.util.Log.e("WishlistDebug", "Error removing from wishlist: ${e.message}", e)
+            e.printStackTrace()
             false
         }
     }
     
     suspend fun getWishlistItems(): List<String> {
         return try {
-            val userId = FirebaseManager.currentUser?.uid ?: return emptyList()
+            val userId = FirebaseManager.currentUser?.uid
+            android.util.Log.d("WishlistDebug", "getWishlistItems - userId=$userId")
+            
+            if (userId == null) {
+                android.util.Log.e("WishlistDebug", "getWishlistItems - No user logged in!")
+                return emptyList()
+            }
+            
+            android.util.Log.d("WishlistDebug", "Querying wishlist items for userId=$userId")
             val snapshot = wishlistRef
                 .whereEqualTo("userId", userId)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { 
-                it.toObject(WishlistItem::class.java)?.productId 
+            
+            android.util.Log.d("WishlistDebug", "Query returned ${snapshot.documents.size} documents")
+            val productIds = snapshot.documents.mapNotNull { 
+                val item = it.toObject(WishlistItem::class.java)
+                android.util.Log.d("WishlistDebug", "Parsed wishlist item: $item")
+                item?.productId
             }
+            android.util.Log.d("WishlistDebug", "Returning ${productIds.size} product IDs")
+            productIds
         } catch (e: Exception) {
+            android.util.Log.e("WishlistDebug", "Error getting wishlist items: ${e.message}", e)
+            e.printStackTrace()
             emptyList()
         }
     }
