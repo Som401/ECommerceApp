@@ -10,17 +10,15 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottomBar"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout7"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingBottom="16dp">
+            android:layout_height="wrap_content">
 
-            <!-- Product Image -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/imageCard"
                 android:layout_width="match_parent"
@@ -38,7 +36,6 @@
                     android:scaleType="centerCrop" />
             </androidx.cardview.widget.CardView>
 
-            <!-- Top Navigation Bar -->
             <LinearLayout
                 android:id="@+id/topBarLayout"
                 android:layout_width="match_parent"
@@ -92,17 +89,16 @@
 
             </LinearLayout>
 
-            <!-- Product Details Content -->
             <LinearLayout
                 android:id="@+id/linearLayout6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:paddingBottom="24dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/imageCard">
 
-                <!-- Product Name and Price -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -115,25 +111,25 @@
                         android:id="@+id/tvProductName"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
+                        android:layout_weight="3"
                         android:maxLines="2"
                         android:text="Product Name"
                         android:textColor="@color/mainText"
-                        android:textSize="22sp"
+                        android:textSize="24sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvProductPrice"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:gravity="end"
                         android:text="$0.00"
-                        android:textColor="@color/primary"
+                        android:textColor="@color/mainText"
                         android:textSize="24sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Brand -->
                 <TextView
                     android:id="@+id/tvProductBrand"
                     android:layout_width="match_parent"
@@ -145,7 +141,6 @@
                     android:textColor="@color/grayText"
                     android:textSize="16sp" />
                 
-                <!-- Rating -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -169,27 +164,25 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="(4.5)"
-                        android:textSize="13sp"
-                        android:layout_marginStart="6dp"
-                        android:textColor="@color/mainText"/>
+                        android:textSize="12sp"
+                        android:layout_marginStart="4dp"
+                        android:textColor="@color/grayText"/>
                 </LinearLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginStart="20dp"
                     android:layout_marginEnd="20dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="16dp"
                     android:background="@color/grayText"
                     android:alpha="0.2" />
-
-                <!-- Description Section -->
+                    
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="16dp"
                     android:layout_marginEnd="20dp"
                     android:text="Description"
                     android:textColor="@color/mainText"
@@ -207,13 +200,13 @@
                     android:textColor="@color/grayText"
                     android:lineSpacingExtra="4dp"
                     android:textSize="14sp" />
-
+                    
                 <!-- Size Selection -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:layout_marginTop="24dp"
+                    android:layout_marginTop="20dp"
                     android:text="Size"
                     android:textColor="@color/mainText"
                     android:textSize="16sp"
@@ -223,9 +216,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scrollbars="none"
-                    android:layout_marginTop="8dp"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
                     android:clipToPadding="false">
                     
                     <com.google.android.material.chip.ChipGroup
@@ -233,7 +225,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:singleSelection="true"
-                        app:selectionRequired="false">
+                        app:selectionRequired="true">
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
 
@@ -242,7 +234,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="16dp"
                     android:text="Color"
                     android:textColor="@color/mainText"
                     android:textSize="16sp"
@@ -262,18 +254,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:singleSelection="true"
-                        app:selectionRequired="false">
+                        app:selectionRequired="true">
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
-
-                <!-- Stock and Gender Info -->
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginStart="20dp"
                     android:layout_marginEnd="20dp"
-                    android:layout_marginTop="20dp">
+                    android:layout_marginTop="16dp">
                     
                     <TextView
                         android:id="@+id/tvStock"
@@ -294,7 +285,7 @@
                         android:textSize="14sp" />
                 </LinearLayout>
                     
-                <!-- Hidden fields for logic -->
+                <!-- Hidden fields for logic but not shown in design -->
                 <TextView
                     android:id="@+id/tvOriginalPrice"
                     android:layout_width="wrap_content"
@@ -312,9 +303,8 @@
 
     </ScrollView>
 
-    <!-- Bottom Add to Cart Button -->
     <LinearLayout
-        android:id="@+id/bottomBar"
+        android:id="@+id/linearLayout7"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
@@ -339,7 +329,6 @@
             app:cornerRadius="8dp" />
     </LinearLayout>
     
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"

@@ -16,8 +16,17 @@ class ProductRepository {
     suspend fun getAllProducts(): List<Product> {
         return try {
             val snapshot = productsRef.get().await()
-            snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+            snapshot.documents.mapNotNull { doc ->
+                val prod = doc.toObject(Product::class.java)?.copy(id = doc.id)
+                if (prod != null) {
+                    android.util.Log.d("ProductDebug", "Fetched product docId=${doc.id} name=${prod.name} price=${prod.price} stock=${prod.stock}")
+                } else {
+                    android.util.Log.w("ProductDebug", "Null product for docId=${doc.id}")
+                }
+                prod
+            }
         } catch (e: Exception) {
+            android.util.Log.e("ProductDebug", "getAllProducts error: ${e.message}")
             emptyList()
         }
     }
@@ -28,7 +37,9 @@ class ProductRepository {
                 .whereEqualTo("category", category)
                 .get()
                 .await()
-            snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.copy(id = doc.id)
+            }
         } catch (e: Exception) {
             emptyList()
         }
@@ -37,8 +48,20 @@ class ProductRepository {
     suspend fun getProductById(id: String): Product? {
         return try {
             val snapshot = productsRef.document(id).get().await()
-            snapshot.toObject(Product::class.java)
+            if (snapshot.exists()) {
+                val prod = snapshot.toObject(Product::class.java)?.copy(id = snapshot.id)
+                android.util.Log.d("ProductDebug", "Loaded by docId id=${id} name=${prod?.name}")
+                prod
+            } else {
+                // fallback: query by field id if documents stored with random IDs
+                val query = productsRef.whereEqualTo("id", id).get().await()
+                val first = query.documents.firstOrNull()
+                val prod = first?.toObject(Product::class.java)?.copy(id = first.id)
+                android.util.Log.d("ProductDebug", "Loaded by field id=${id} name=${prod?.name}")
+                prod
+            }
         } catch (e: Exception) {
+            android.util.Log.e("ProductDebug", "getProductById error id=${id}: ${e.message}")
             null
         }
     }

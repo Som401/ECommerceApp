@@ -1,17 +1,28 @@
 package com.example.e_commerce_app.ui.activities
 
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.e_commerce_app.R
 import com.example.e_commerce_app.data.model.CartItem
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.data.repository.ProductRepository
 import com.example.e_commerce_app.databinding.ActivityProductDetailsBinding
+import com.example.e_commerce_app.ui.adapters.ProductAdapter
+import com.example.e_commerce_app.utils.FirebaseManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -33,10 +44,12 @@ class ProductDetailsActivity : AppCompatActivity() {
         binding = ActivityProductDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        val productId = intent.getStringExtra("PRODUCT_ID") ?: run {
-            finish()
-            return
+        val productId = intent.getStringExtra("PRODUCT_ID") ?: ""
+        if (productId.isEmpty()) {
+            android.util.Log.w("ProductDebug", "Missing PRODUCT_ID extra; will display fallback extras only")
         }
+        // Display fallback immediately to avoid mock placeholders
+        displayFallbackIfPresent()
         
         loadProduct(productId)
         setupClickListeners()
@@ -48,7 +61,7 @@ class ProductDetailsActivity : AppCompatActivity() {
         }
         
         binding.btnAddToCart.setOnClickListener {
-            addToCart()
+            addToCartDirectly()
         }
         
         binding.ivWishlist.setOnClickListener {
@@ -62,13 +75,27 @@ class ProductDetailsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 product = repository.getProductById(productId)
-                product?.let { displayProduct(it) }
+                if (product != null) {
+                    displayProduct(product!!)
+                }
                 checkWishlistStatus(productId)
             } catch (e: Exception) {
                 Toast.makeText(this@ProductDetailsActivity, "Error loading product", Toast.LENGTH_SHORT).show()
-                finish()
             } finally {
                 binding.progressBar.visibility = View.GONE
+            }
+        }
+    }
+    
+    private fun loadRecommendedProducts() {
+        lifecycleScope.launch {
+            try {
+                // For now, just fetch all products and take first 5 as recommended
+                // In a real app, this would be a smarter query
+                val allProducts = repository.getAllProducts()
+                recommendedAdapter.updateProducts(allProducts.take(5))
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -100,9 +127,10 @@ class ProductDetailsActivity : AppCompatActivity() {
             }
             
             ratingBar.rating = product.rating
-            tvRating.text = "${product.rating}"
+            tvRating.text = "(${product.rating})"
             
             // Setup size chips
+            chipGroupSizes.removeAllViews()
             product.size.forEach { size ->
                 val chip = Chip(this@ProductDetailsActivity)
                 chip.text = size
@@ -117,12 +145,15 @@ class ProductDetailsActivity : AppCompatActivity() {
                                 otherChip?.isChecked = false
                             }
                         }
+                    } else if (selectedSize == size) {
+                        selectedSize = null
                     }
                 }
                 chipGroupSizes.addView(chip)
             }
             
             // Setup color chips
+            chipGroupColors.removeAllViews()
             product.colors.forEach { color ->
                 val chip = Chip(this@ProductDetailsActivity)
                 chip.text = color
@@ -137,13 +168,45 @@ class ProductDetailsActivity : AppCompatActivity() {
                                 otherChip?.isChecked = false
                             }
                         }
+                    } else if (selectedColor == color) {
+                        selectedColor = null
                     }
                 }
                 chipGroupColors.addView(chip)
             }
             
             tvGender.text = "Gender: ${product.gender}"
-            tvStock.text = if (product.inStock) "In Stock" else "Out of Stock"
+            tvStock.text = if (product.inStock) "In Stock (${product.stock})" else "Out of Stock"
+        }
+    }
+
+    private fun displayFallbackIfPresent() {
+        val name = intent.getStringExtra("PRODUCT_NAME_FALLBACK")
+        if (name != null) {
+            binding.tvProductName.text = name
+            binding.tvProductBrand.text = intent.getStringExtra("PRODUCT_BRAND_FALLBACK") ?: ""
+            binding.tvProductDescription.text = intent.getStringExtra("PRODUCT_DESCRIPTION_FALLBACK") ?: ""
+            val image = intent.getStringExtra("PRODUCT_IMAGE_FALLBACK")
+            if (!image.isNullOrEmpty()) {
+                Glide.with(binding.ivProductImage.context)
+                    .load(image)
+                    .placeholder(android.R.drawable.ic_menu_gallery)
+                    .error(android.R.drawable.ic_menu_report_image)
+                    .into(binding.ivProductImage)
+            }
+            val price = intent.getDoubleExtra("PRODUCT_PRICE_FALLBACK", 0.0)
+            val discount = intent.getIntExtra("PRODUCT_DISCOUNT_FALLBACK", 0)
+            if (discount > 0) {
+                binding.tvProductPrice.text = "$${price - (price * discount / 100)}"
+                binding.tvOriginalPrice.text = "$${price}"; binding.tvOriginalPrice.visibility = View.VISIBLE
+                binding.tvDiscount.text = "${discount}% OFF"; binding.tvDiscount.visibility = View.VISIBLE
+            } else {
+                binding.tvProductPrice.text = "$${price}"; binding.tvOriginalPrice.visibility = View.GONE; binding.tvDiscount.visibility = View.GONE
+            }
+            val stock = intent.getIntExtra("PRODUCT_STOCK_FALLBACK", 0)
+            binding.tvStock.text = if (stock > 0) "In Stock (${stock})" else "Out of Stock"
+            val gender = intent.getStringExtra("PRODUCT_GENDER_FALLBACK") ?: ""
+            if (gender.isNotEmpty()) binding.tvGender.text = "Gender: ${gender}" else binding.tvGender.text = ""
         }
     }
     
@@ -160,20 +223,16 @@ class ProductDetailsActivity : AppCompatActivity() {
     
     private fun updateWishlistIcon() {
         if (isInWishlist) {
-            binding.ivWishlist.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite)
+            binding.ivWishlist.setImageResource(R.drawable.ic_favorite)
             ImageViewCompat.setImageTintList(
                 binding.ivWishlist,
-                android.content.res.ColorStateList.valueOf(
-                    ContextCompat.getColor(this, com.example.e_commerce_app.R.color.primary)
-                )
+                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.primary))
             )
         } else {
-            binding.ivWishlist.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite_border)
+            binding.ivWishlist.setImageResource(R.drawable.ic_favorite_border)
             ImageViewCompat.setImageTintList(
                 binding.ivWishlist,
-                android.content.res.ColorStateList.valueOf(
-                    ContextCompat.getColor(this, com.example.e_commerce_app.R.color.grayText)
-                )
+                ColorStateList.valueOf(ContextCompat.getColor(this, R.color.grayText))
             )
         }
     }
@@ -203,7 +262,7 @@ class ProductDetailsActivity : AppCompatActivity() {
         }
     }
     
-    private fun addToCart() {
+    private fun showAddToCartBottomSheet() {
         val prod = product ?: return
         
         if (selectedSize == null) {
@@ -216,6 +275,41 @@ class ProductDetailsActivity : AppCompatActivity() {
             return
         }
         
+        val bottomSheetDialog = BottomSheetDialog(this)
+        val bottomSheetView = LayoutInflater.from(this).inflate(
+            R.layout.fragment_add_to_bag,
+            null
+        )
+        
+        val etQuantity = bottomSheetView.findViewById<EditText>(R.id.quantityEtBottom)
+        var quantity = 1
+        etQuantity.setText(quantity.toString())
+        
+        bottomSheetView.findViewById<View>(R.id.minusLayout).setOnClickListener {
+            if (quantity > 1) {
+                quantity--
+                etQuantity.setText(quantity.toString())
+            }
+        }
+        
+        bottomSheetView.findViewById<View>(R.id.plusLayout).setOnClickListener {
+            if (quantity < 10) { // Limit max quantity
+                quantity++
+                etQuantity.setText(quantity.toString())
+            }
+        }
+        
+        bottomSheetView.findViewById<View>(R.id.addToCart_BottomSheet).setOnClickListener {
+            addToCart(quantity)
+            bottomSheetDialog.dismiss()
+        }
+        
+        bottomSheetDialog.setContentView(bottomSheetView)
+        bottomSheetDialog.show()
+    }
+    
+    private fun addToCart(quantity: Int) {
+        val prod = product ?: return
         val userId = auth.currentUser?.uid ?: run {
             Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
             return
@@ -229,7 +323,7 @@ class ProductDetailsActivity : AppCompatActivity() {
             price = if (prod.discount > 0) prod.getPriceAfterDiscount() else prod.price,
             selectedSize = selectedSize!!,
             selectedColor = selectedColor!!,
-            quantity = 1,
+            quantity = quantity,
             productImage = prod.imageUrl
         )
         

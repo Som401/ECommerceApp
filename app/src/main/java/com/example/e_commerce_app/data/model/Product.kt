@@ -10,17 +10,12 @@ data class Product(
     val brand: String = "",
     val imageUrl: String = "",
     val category: String = "", // Running, Casual, Formal, Sports, Sneakers
-    val size: List<String> = emptyList(), // ["7", "8", "9", "10", "11", "12"]
+    val size: List<String> = emptyList(), // ["42", "43", "44", "45"]
     val colors: List<String> = emptyList(), // ["Black", "White", "Blue"]
-    val inStock: Boolean = true,
-    val isFavorite: Boolean = false,
+    val stock: Int = 0, // numeric stock from backend
     val gender: String = "" // Men, Women, Unisex
 ) {
-    fun getPriceAfterDiscount(): Double {
-        return if (discount > 0) {
-            price - (price * discount / 100)
-        } else {
-            price
-        }
-    }
+    fun getPriceAfterDiscount(): Double =
+        if (discount > 0) price - (price * discount / 100) else price
+    val inStock: Boolean get() = stock > 0
 }

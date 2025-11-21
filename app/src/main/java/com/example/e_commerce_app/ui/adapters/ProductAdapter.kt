@@ -13,7 +13,7 @@ import com.example.e_commerce_app.databinding.ItemProductBinding
 import kotlinx.coroutines.launch
 
 class ProductAdapter(
-    private val products: List<Product>,
+    private var products: MutableList<Product>,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val onProductClick: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
@@ -25,6 +25,7 @@ class ProductAdapter(
 
         fun bind(product: Product) {
             binding.apply {
+                android.util.Log.d("ProductDebug", "Bind adapter product id='${product.id}' name='${product.name}' brand='${product.brand}'")
                 tvProductName.text = product.name
                 tvProductBrand.text = product.brand
                 
@@ -118,6 +119,7 @@ class ProductAdapter(
                 
                 // Handle item click
                 root.setOnClickListener {
+                    android.util.Log.d("ProductDebug", "Card click product id='${product.id}' name='${product.name}'")
                     onProductClick(product)
                 }
             }
@@ -138,4 +140,11 @@ class ProductAdapter(
     }
 
     override fun getItemCount() = products.size
+
+    fun updateProducts(newList: List<Product>) {
+        android.util.Log.d("ProductDebug", "ProductAdapter updateProducts size=${newList.size}")
+        products.clear()
+        products.addAll(newList)
+        notifyDataSetChanged()
+    }
 }
