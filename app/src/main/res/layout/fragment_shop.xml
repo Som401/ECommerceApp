@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginTop="24dp"
-        android:text="Shop Shoes"
+        android:text="@string/shop_shoes"
         android:textColor="@color/mainText"
         android:textSize="28sp"
         android:textStyle="bold"
@@ -25,7 +25,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
-        android:text="USD"
+        android:text="@string/currency_usd"
         android:textSize="14sp"
         style="@style/Widget.Material3.Button.OutlinedButton"
         app:layout_constraintEnd_toEndOf="parent"
@@ -52,7 +52,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="All"
+            android:text="@string/all_products"
             app:chipBackgroundColor="@color/primary" />
 
         <com.google.android.material.chip.Chip
@@ -60,28 +60,28 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Running" />
+            android:text="@string/category_running" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSneakers"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sneakers" />
+            android:text="@string/category_sneakers" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSports"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sports" />
+            android:text="@string/category_sports" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipCasual"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Casual" />
+            android:text="@string/category_casual" />
     </com.google.android.material.chip.ChipGroup>
 
     <ProgressBar
@@ -113,7 +113,7 @@
         android:id="@+id/tvEmptyState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No products found"
+        android:text="@string/no_products_found"
         android:textColor="@color/grayText"
         android:textSize="16sp"
         android:visibility="gone"

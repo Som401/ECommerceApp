@@ -20,9 +20,7 @@ class LoginActivity : AppCompatActivity() {
     private var isEmailValid = false
     private var isPasswordValid = false
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

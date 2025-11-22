@@ -57,6 +57,15 @@
             android:name=".ui.activities.OrdersActivity"
             android:exported="false"
             android:theme="@style/Theme.ECommerceApp" />
+        <!-- Service for persisting application locales -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>

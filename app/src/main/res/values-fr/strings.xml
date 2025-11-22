@@ -156,6 +156,24 @@
     <string name="no_internet">Pas de connexion Internet</string>
     <string name="try_again">Réessayer</string>
 
+    <!-- Home -->
+    <string name="welcome_message">Bienvenue</string>
+    <string name="shopper_name">Client!</string>
+    <string name="new_collection">Nouvelle Collection</string>
+    <string name="discover_latest">Découvrez nos nouveautés</string>
+    <string name="shop_now">Acheter maintenant</string>
+    <string name="featured">En vedette</string>
+
+    <!-- Shop -->
+    <string name="shop_shoes">Chaussures</string>
+    <string name="no_products_found">Aucun produit trouvé</string>
+
+    <string name="all_products">Tout</string>
+    <string name="category_running">Course</string>
+    <string name="category_sneakers">Baskets</string>
+    <string name="category_sports">Sport</string>
+    <string name="category_casual">Décontracté</string>
+
     <!-- Legacy/Template Strings (unused but required by templates) -->
     <string name="action_settings">Paramètres</string>
     <string name="first_fragment_label">Premier Fragment</string>

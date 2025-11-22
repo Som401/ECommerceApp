@@ -327,8 +327,7 @@ class ProfileFragment : Fragment() {
             val selectedLanguage = languageCodes[which]
             if (selectedLanguage != currentLanguage) {
                 LocaleHelper.setLanguage(requireContext(), selectedLanguage)
-                // Restart activity to apply language
-                requireActivity().recreate()
+                // Activity will be recreated automatically by AppCompatDelegate
             }
             dialog.dismiss()
         }

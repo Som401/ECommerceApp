@@ -25,9 +25,7 @@ class CheckoutActivity : AppCompatActivity() {
     private var subtotal = 0.0
     private val shippingCost = 10.0
     
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

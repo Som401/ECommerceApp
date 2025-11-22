@@ -25,9 +25,7 @@ class OrdersActivity : AppCompatActivity() {
     private val orders = mutableListOf<Order>()
     private val db = FirebaseFirestore.getInstance()
     
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
