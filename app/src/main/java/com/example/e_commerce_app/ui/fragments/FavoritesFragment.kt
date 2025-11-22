@@ -21,6 +21,7 @@ class FavoritesFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
     private lateinit var adapter: ProductGridAdapter
     private val wishlistProducts = mutableListOf<Product>()
+    private var isViewCreated = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,13 +35,13 @@ class FavoritesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        loadWishlist()
+        isViewCreated = true
+        // Don't load here - let onResume handle it
     }
 
     private fun setupRecyclerView() {
         adapter = ProductGridAdapter(
             products = wishlistProducts,
-            lifecycleScope = lifecycleScope,
             onProductClick = { product ->
                 val intent = Intent(requireContext(), com.example.e_commerce_app.ui.activities.ProductDetailsActivity::class.java)
                 intent.putExtra("PRODUCT_ID", product.id)
@@ -109,12 +110,15 @@ class FavoritesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Always reload to reflect changes from other screens
-        loadWishlist()
+        // Only load if view has been created
+        if (isViewCreated) {
+            loadWishlist()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        isViewCreated = false
         _binding = null
     }
 }

@@ -1,5 +1,6 @@
 package com.example.e_commerce_app.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,8 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.e_commerce_app.data.cache.CartCache
 import com.example.e_commerce_app.data.model.CartItem
 import com.example.e_commerce_app.databinding.FragmentBagBinding
+import com.example.e_commerce_app.ui.activities.CheckoutActivity
 import com.example.e_commerce_app.ui.adapters.CartAdapter
+import com.example.e_commerce_app.utils.CurrencyConverter
 import com.example.e_commerce_app.utils.Extensions.showToast
+import com.example.e_commerce_app.utils.GlobalCurrency
 import kotlinx.coroutines.launch
 
 class BagFragment : Fragment() {
@@ -20,6 +24,7 @@ class BagFragment : Fragment() {
     
     private lateinit var cartAdapter: CartAdapter
     private var cartItems = mutableListOf<CartItem>()
+    private var isViewCreated = false
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +40,8 @@ class BagFragment : Fragment() {
         
         setupRecyclerView()
         setupCheckout()
-        loadCartItems()
+        isViewCreated = true
+        // Don't load here - let onResume handle it
     }
     
     private fun setupRecyclerView() {
@@ -55,8 +61,10 @@ class BagFragment : Fragment() {
     private fun setupCheckout() {
         binding.btnCheckout.setOnClickListener {
             if (cartItems.isNotEmpty()) {
-                requireContext().showToast("Proceeding to checkout...")
-                // Navigate to checkout
+                val subtotal = cartItems.sumOf { it.getTotalPrice() }
+                val intent = Intent(requireContext(), CheckoutActivity::class.java)
+                intent.putExtra("SUBTOTAL", subtotal)
+                startActivity(intent)
             } else {
                 requireContext().showToast("Cart is empty")
             }
@@ -116,20 +124,33 @@ class BagFragment : Fragment() {
             val shipping = 10.0
             val total = subtotal + shipping
             
-            binding.tvSubtotal.text = "$${"%.2f".format(subtotal)}"
-            binding.tvShipping.text = "$${"%.2f".format(shipping)}"
-            binding.tvTotal.text = "$${"%.2f".format(total)}"
+            val currency = GlobalCurrency.currentCurrency
+            binding.tvSubtotal.text = when (currency) {
+                "EUR" -> "€${String.format("%.2f", subtotal * 0.92)}"
+                else -> "$${String.format("%.2f", subtotal)}"
+            }
+            binding.tvShipping.text = when (currency) {
+                "EUR" -> "€${String.format("%.2f", shipping * 0.92)}"
+                else -> "$${String.format("%.2f", shipping)}"
+            }
+            binding.tvTotal.text = when (currency) {
+                "EUR" -> "€${String.format("%.2f", total * 0.92)}"
+                else -> "$${String.format("%.2f", total)}"
+            }
         }
     }
     
     override fun onResume() {
         super.onResume()
-        // Reload cart to reflect any changes
-        loadCartItems()
+        // Only load if view has been created
+        if (isViewCreated) {
+            loadCartItems()
+        }
     }
     
     override fun onDestroyView() {
         super.onDestroyView()
+        isViewCreated = false
         _binding = null
     }
 }

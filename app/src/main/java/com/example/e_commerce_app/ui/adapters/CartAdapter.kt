@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.e_commerce_app.data.model.CartItem
 import com.example.e_commerce_app.databinding.ItemCartBinding
+import com.example.e_commerce_app.utils.GlobalCurrency
 
 class CartAdapter(
     private val items: List<CartItem>,
@@ -20,7 +21,7 @@ class CartAdapter(
             binding.apply {
                 tvProductName.text = item.productName
                 tvProductDetails.text = "Size: ${item.selectedSize}, Color: ${item.selectedColor}"
-                tvPrice.text = "$${item.price}"
+                tvPrice.text = item.getFormattedPrice(GlobalCurrency.currentCurrency)
                 tvQuantity.text = item.quantity.toString()
                 
                 // Load product image

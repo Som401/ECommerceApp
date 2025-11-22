@@ -12,6 +12,9 @@ import com.example.e_commerce_app.data.cache.ProductCache
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.databinding.FragmentShopBinding
 import com.example.e_commerce_app.ui.adapters.ProductGridAdapter
+import com.example.e_commerce_app.utils.CurrencyConverter
+import com.example.e_commerce_app.utils.CurrencyPreference
+import com.example.e_commerce_app.utils.GlobalCurrency
 import kotlinx.coroutines.launch
 
 class ShopFragment : Fragment() {
@@ -21,6 +24,7 @@ class ShopFragment : Fragment() {
     
     private lateinit var productAdapter: ProductGridAdapter
     private var allProducts = listOf<Product>()
+    private var currentCurrency = "USD"
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,11 +40,13 @@ class ShopFragment : Fragment() {
         
         setupRecyclerView()
         setupCategoryFilters()
+        setupCurrencySwitch()
+        loadUserCurrency()
         loadProducts()
     }
     
     private fun setupRecyclerView() {
-        productAdapter = ProductGridAdapter(emptyList(), lifecycleScope) { product ->
+        productAdapter = ProductGridAdapter(emptyList()) { product ->
             val intent = Intent(requireContext(), com.example.e_commerce_app.ui.activities.ProductDetailsActivity::class.java)
             intent.putExtra("PRODUCT_ID", product.id)
             startActivity(intent)
@@ -63,6 +69,39 @@ class ShopFragment : Fragment() {
                 else -> "All"
             }
             filterProducts(category)
+        }
+    }
+    
+    private fun setupCurrencySwitch() {
+        binding.btnCurrencySwitch.setOnClickListener {
+            lifecycleScope.launch {
+                // Toggle currency
+                currentCurrency = if (currentCurrency == "USD") "EUR" else "USD"
+                binding.btnCurrencySwitch.text = currentCurrency
+                
+                // Update global currency
+                GlobalCurrency.setCurrency(currentCurrency)
+                
+                // Save preference
+                CurrencyPreference.saveUserCurrency(currentCurrency)
+                
+                // Refresh product display
+                productAdapter.notifyDataSetChanged()
+            }
+        }
+    }
+    
+    private fun loadUserCurrency() {
+        lifecycleScope.launch {
+            // Fetch exchange rate in background
+            CurrencyConverter.fetchExchangeRate()
+            
+            // Load user's preferred currency
+            currentCurrency = CurrencyPreference.getUserCurrency()
+            binding.btnCurrencySwitch.text = currentCurrency
+            
+            // Set global currency
+            GlobalCurrency.setCurrency(currentCurrency)
         }
     }
     

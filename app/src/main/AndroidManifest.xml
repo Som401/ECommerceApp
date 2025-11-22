@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
+        android:name=".ECommerceApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -42,6 +43,18 @@
         <!-- Product Details Activity -->
         <activity
             android:name=".ui.activities.ProductDetailsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ECommerceApp" />
+        
+        <!-- Checkout Activity -->
+        <activity
+            android:name=".ui.activities.CheckoutActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ECommerceApp" />
+        
+        <!-- Orders Activity -->
+        <activity
+            android:name=".ui.activities.OrdersActivity"
             android:exported="false"
             android:theme="@style/Theme.ECommerceApp" />
     </application>

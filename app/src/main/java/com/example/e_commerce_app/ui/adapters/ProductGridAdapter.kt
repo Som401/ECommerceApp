@@ -5,17 +5,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.e_commerce_app.data.cache.WishlistCache
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.databinding.ItemProductBinding
+import com.example.e_commerce_app.utils.GlobalCurrency
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class ProductGridAdapter(
     private var products: List<Product>,
-    private val lifecycleScope: LifecycleCoroutineScope,
     private val onProductClick: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductGridAdapter.ProductViewHolder>() {
 
@@ -26,12 +26,7 @@ class ProductGridAdapter(
             binding.apply {
                 tvProductName.text = product.name
                 tvProductBrand.text = product.brand
-                
-                if (product.discount > 0) {
-                    tvProductPrice.text = "$${product.getPriceAfterDiscount()}"
-                } else {
-                    tvProductPrice.text = "$${product.price}"
-                }
+                tvProductPrice.text = product.getFormattedPrice(GlobalCurrency.currentCurrency)
                 
                 ratingBar.rating = product.rating
                 
@@ -45,24 +40,26 @@ class ProductGridAdapter(
                 }
                 
                 // Check if in wishlist and update icon
-                lifecycleScope.launch {
+                GlobalScope.launch {
                     val isInWishlist = WishlistCache.isInWishlist(product.id)
-                    if (isInWishlist) {
-                        ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite)
-                        ImageViewCompat.setImageTintList(
-                            ivFavorite,
-                            android.content.res.ColorStateList.valueOf(
-                                ContextCompat.getColor(ivFavorite.context, com.example.e_commerce_app.R.color.primary)
+                    root.post {
+                        if (isInWishlist) {
+                            ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite)
+                            ImageViewCompat.setImageTintList(
+                                ivFavorite,
+                                android.content.res.ColorStateList.valueOf(
+                                    ContextCompat.getColor(ivFavorite.context, com.example.e_commerce_app.R.color.primary)
+                                )
                             )
-                        )
-                    } else {
-                        ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite_border)
-                        ImageViewCompat.setImageTintList(
-                            ivFavorite,
-                            android.content.res.ColorStateList.valueOf(
-                                ContextCompat.getColor(ivFavorite.context, com.example.e_commerce_app.R.color.grayText)
+                        } else {
+                            ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite_border)
+                            ImageViewCompat.setImageTintList(
+                                ivFavorite,
+                                android.content.res.ColorStateList.valueOf(
+                                    ContextCompat.getColor(ivFavorite.context, com.example.e_commerce_app.R.color.grayText)
+                                )
                             )
-                        )
+                        }
                     }
                 }
                 
@@ -71,45 +68,43 @@ class ProductGridAdapter(
                 }
                 
                 ivFavorite.setOnClickListener {
-                    lifecycleScope.launch {
+                    GlobalScope.launch {
                         val context = ivFavorite.context
                         val currentlyFav = WishlistCache.isInWishlist(product.id)
                         
-                        android.util.Log.d("ProductGridAdapter", "Wishlist toggle for ${product.id}, currently: $currentlyFav")
-                        
                         if (currentlyFav) {
-                            // Try to remove
                             val success = WishlistCache.removeFromWishlist(product.id)
-                            android.util.Log.d("ProductGridAdapter", "Remove result: $success")
                             
-                            if (success) {
-                                ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite_border)
-                                ImageViewCompat.setImageTintList(
-                                    ivFavorite,
-                                    android.content.res.ColorStateList.valueOf(
-                                        ContextCompat.getColor(context, com.example.e_commerce_app.R.color.grayText)
+                            root.post {
+                                if (success) {
+                                    ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite_border)
+                                    ImageViewCompat.setImageTintList(
+                                        ivFavorite,
+                                        android.content.res.ColorStateList.valueOf(
+                                            ContextCompat.getColor(context, com.example.e_commerce_app.R.color.grayText)
+                                        )
                                     )
-                                )
-                                Toast.makeText(context, "Removed from wishlist", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Error removing from wishlist", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Removed from wishlist", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Error removing from wishlist", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         } else {
-                            // Try to add
                             val success = WishlistCache.addToWishlist(product.id)
-                            android.util.Log.d("ProductGridAdapter", "Add result: $success")
                             
-                            if (success) {
-                                ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite)
-                                ImageViewCompat.setImageTintList(
-                                    ivFavorite,
-                                    android.content.res.ColorStateList.valueOf(
-                                        ContextCompat.getColor(context, com.example.e_commerce_app.R.color.primary)
+                            root.post {
+                                if (success) {
+                                    ivFavorite.setImageResource(com.example.e_commerce_app.R.drawable.ic_favorite)
+                                    ImageViewCompat.setImageTintList(
+                                        ivFavorite,
+                                        android.content.res.ColorStateList.valueOf(
+                                            ContextCompat.getColor(context, com.example.e_commerce_app.R.color.primary)
+                                        )
                                     )
-                                )
-                                Toast.makeText(context, "Added to wishlist", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Error adding to wishlist", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Added to wishlist", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Error adding to wishlist", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     }

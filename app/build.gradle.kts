@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.example.e_commerce_app"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.e_commerce_app"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 28
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 

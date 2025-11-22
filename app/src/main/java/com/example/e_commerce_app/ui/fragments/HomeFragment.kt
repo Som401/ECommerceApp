@@ -99,7 +99,7 @@ class HomeFragment : Fragment() {
     
     private fun setupRecyclerViews() {
         // New Products RecyclerView
-        newProductsAdapter = ProductAdapter(newProducts, lifecycleScope) { product ->
+        newProductsAdapter = ProductAdapter(newProducts) { product ->
             openProductDetails(product)
         }
         binding.rvNewProducts.apply {
@@ -108,7 +108,7 @@ class HomeFragment : Fragment() {
         }
         
         // Featured Products RecyclerView
-        featuredProductsAdapter = ProductAdapter(featuredProducts, lifecycleScope) { product ->
+        featuredProductsAdapter = ProductAdapter(featuredProducts) { product ->
             openProductDetails(product)
         }
         binding.rvFeaturedProducts.apply {

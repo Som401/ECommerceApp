@@ -15,7 +15,23 @@ data class Product(
     val stock: Int = 0, // numeric stock from backend
     val gender: String = "" // Men, Women, Unisex
 ) {
+    // Original price is always in USD
+    private val basePriceUSD: Double = price
+    
     fun getPriceAfterDiscount(): Double =
         if (discount > 0) price - (price * discount / 100) else price
+    
     val inStock: Boolean get() = stock > 0
+    
+    // Get formatted price with currency symbol
+    fun getFormattedPrice(currency: String = "USD"): String {
+        val finalPrice = getPriceAfterDiscount()
+        return when (currency) {
+            "EUR" -> {
+                val euroPrice = finalPrice * 0.92 // Fixed rate: 1 USD = 0.92 EUR
+                "€${String.format("%.2f", euroPrice)}"
+            }
+            else -> "$${String.format("%.2f", finalPrice)}"
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.e_commerce_app.ui.auth
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -12,6 +13,7 @@ import com.example.e_commerce_app.data.model.User
 import com.example.e_commerce_app.databinding.ActivitySignUpBinding
 import com.example.e_commerce_app.utils.Extensions.showToast
 import com.example.e_commerce_app.utils.FirebaseManager
+import com.example.e_commerce_app.utils.LocaleHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,6 +24,10 @@ class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
     private val userCollection = FirebaseManager.firestore.collection("Users")
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

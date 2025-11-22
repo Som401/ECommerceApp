@@ -1,5 +1,6 @@
 package com.example.e_commerce_app.ui.auth
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -11,12 +12,17 @@ import com.example.e_commerce_app.MainActivity
 import com.example.e_commerce_app.databinding.ActivityLoginBinding
 import com.example.e_commerce_app.utils.Extensions.showToast
 import com.example.e_commerce_app.utils.FirebaseManager
+import com.example.e_commerce_app.utils.LocaleHelper
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private var isEmailValid = false
     private var isPasswordValid = false
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
