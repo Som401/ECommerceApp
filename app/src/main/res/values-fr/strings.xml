@@ -154,6 +154,10 @@
     <string name="please_login">Veuillez vous connecter</string>
     <string name="something_went_wrong">Une erreur s\'est produite</string>
     <string name="no_internet">Pas de connexion Internet</string>
+    <string name="no_internet_message">Veuillez vérifier votre connexion Internet et réessayer.</string>
+    <string name="slow_internet">Connexion Internet lente</string>
+    <string name="slow_internet_message">Votre connexion semble lente. Voulez-vous attendre ou réessayer?</string>
+    <string name="wait">Attendre</string>
     <string name="try_again">Réessayer</string>
 
     <!-- Home -->

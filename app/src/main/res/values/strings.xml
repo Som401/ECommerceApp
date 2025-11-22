@@ -85,6 +85,12 @@
     <!-- Orders -->
     <string name="orders">Orders</string>
     <string name="no_orders">No orders yet</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="no_internet_message">Please check your internet connection and try again.</string>
+    <string name="slow_internet">Slow Internet Connection</string>
+    <string name="slow_internet_message">It seems your connection is slow. Would you like to wait or try again?</string>
+    <string name="wait">Wait</string>
+    <string name="try_again">Try Again</string>
     <string name="order_number">Order #%1$s</string>
     <string name="order_date">Date: %1$s</string>
     <string name="order_status">Status: %1$s</string>

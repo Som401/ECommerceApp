@@ -18,7 +18,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class CheckoutActivity : AppCompatActivity() {
+class CheckoutActivity : BaseActivity() {
     
     private lateinit var binding: ActivityCheckoutBinding
     private val db = FirebaseFirestore.getInstance()

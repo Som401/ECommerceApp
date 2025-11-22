@@ -7,14 +7,14 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Patterns
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import com.example.e_commerce_app.MainActivity
 import com.example.e_commerce_app.databinding.ActivityLoginBinding
+import com.example.e_commerce_app.ui.activities.BaseActivity
 import com.example.e_commerce_app.utils.Extensions.showToast
 import com.example.e_commerce_app.utils.FirebaseManager
 import com.example.e_commerce_app.utils.LocaleHelper
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private var isEmailValid = false

@@ -24,7 +24,7 @@ class ShopFragment : Fragment() {
     
     private lateinit var productAdapter: ProductGridAdapter
     private var allProducts = listOf<Product>()
-    private var currentCurrency = "USD"
+    private var currentCurrency = GlobalCurrency.currentCurrency
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +37,9 @@ class ShopFragment : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        
+        // Initialize button text immediately
+        binding.btnCurrencySwitch.text = currentCurrency
         
         setupRecyclerView()
         setupCategoryFilters()
@@ -96,12 +99,17 @@ class ShopFragment : Fragment() {
             // Fetch exchange rate in background
             CurrencyConverter.fetchExchangeRate()
             
-            // Load user's preferred currency
-            currentCurrency = CurrencyPreference.getUserCurrency()
-            binding.btnCurrencySwitch.text = currentCurrency
+            // Load user's preferred currency if not already set by GlobalCurrency
+            // But GlobalCurrency is the source of truth for the session
+            val prefCurrency = CurrencyPreference.getUserCurrency()
             
-            // Set global currency
-            GlobalCurrency.setCurrency(currentCurrency)
+            // Only update if different and GlobalCurrency hasn't changed in the meantime
+            if (prefCurrency != currentCurrency) {
+                currentCurrency = prefCurrency
+                binding.btnCurrencySwitch.text = currentCurrency
+                GlobalCurrency.setCurrency(currentCurrency)
+                productAdapter.notifyDataSetChanged()
+            }
         }
     }
     

@@ -9,7 +9,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.example.e_commerce_app.ui.activities.BaseActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
@@ -30,7 +30,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class ProductDetailsActivity : AppCompatActivity() {
+class ProductDetailsActivity : BaseActivity() {
     
     private lateinit var binding: ActivityProductDetailsBinding
     private val auth = FirebaseAuth.getInstance()
