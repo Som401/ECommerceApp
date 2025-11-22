@@ -154,7 +154,29 @@
     <string name="please_login">Veuillez vous connecter</string>
     <string name="something_went_wrong">Une erreur s\'est produite</string>
     <string name="no_internet">Pas de connexion Internet</string>
+    <string name="no_internet_message">Veuillez vérifier votre connexion Internet et réessayer.</string>
+    <string name="slow_internet">Connexion Internet lente</string>
+    <string name="slow_internet_message">Votre connexion semble lente. Voulez-vous attendre ou réessayer?</string>
+    <string name="wait">Attendre</string>
     <string name="try_again">Réessayer</string>
+
+    <!-- Home -->
+    <string name="welcome_message">Bienvenue</string>
+    <string name="shopper_name">Client!</string>
+    <string name="new_collection">Nouvelle Collection</string>
+    <string name="discover_latest">Découvrez nos nouveautés</string>
+    <string name="shop_now">Acheter maintenant</string>
+    <string name="featured">En vedette</string>
+
+    <!-- Shop -->
+    <string name="shop_shoes">Chaussures</string>
+    <string name="no_products_found">Aucun produit trouvé</string>
+
+    <string name="all_products">Tout</string>
+    <string name="category_running">Course</string>
+    <string name="category_sneakers">Baskets</string>
+    <string name="category_sports">Sport</string>
+    <string name="category_casual">Décontracté</string>
 
     <!-- Legacy/Template Strings (unused but required by templates) -->
     <string name="action_settings">Paramètres</string>

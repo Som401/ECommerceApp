@@ -100,7 +100,7 @@
             android:id="@+id/tvStatsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Quick Stats"
+            android:text="@string/quick_stats"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
@@ -151,7 +151,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Total Orders"
+                        android:text="@string/total_orders"
                         android:textSize="12sp"
                         android:textColor="#757575"
                         android:layout_marginTop="4dp" />
@@ -188,7 +188,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Wishlist Items"
+                        android:text="@string/wishlist_items"
                         android:textSize="12sp"
                         android:textColor="#757575"
                         android:layout_marginTop="4dp" />
@@ -204,7 +204,7 @@
             android:id="@+id/tvActionsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Actions"
+            android:text="@string/actions"
             android:textSize="18sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
@@ -218,7 +218,7 @@
             android:id="@+id/btnMyOrders"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:text="My Orders"
+            android:text="@string/my_orders"
             android:textSize="16sp"
             android:textColor="@android:color/white"
             app:icon="@android:drawable/ic_menu_recent_history"
@@ -254,7 +254,7 @@
             android:id="@+id/btnLogout"
             android:layout_width="0dp"
             android:layout_height="56dp"
-            android:text="Logout"
+            android:text="@string/logout"
             android:textSize="16sp"
             android:backgroundTint="#F44336"
             app:icon="@android:drawable/ic_lock_power_off"

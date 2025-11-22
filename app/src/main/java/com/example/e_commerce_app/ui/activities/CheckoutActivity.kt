@@ -18,16 +18,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class CheckoutActivity : AppCompatActivity() {
+class CheckoutActivity : BaseActivity() {
     
     private lateinit var binding: ActivityCheckoutBinding
     private val db = FirebaseFirestore.getInstance()
     private var subtotal = 0.0
     private val shippingCost = 10.0
     
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

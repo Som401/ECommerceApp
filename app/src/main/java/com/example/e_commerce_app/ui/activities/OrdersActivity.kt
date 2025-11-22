@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.e_commerce_app.ui.activities.BaseActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.e_commerce_app.databinding.ActivityOrdersBinding
 import com.example.e_commerce_app.data.model.Order
@@ -18,16 +19,14 @@ import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class OrdersActivity : AppCompatActivity() {
+class OrdersActivity : BaseActivity() {
     
     private lateinit var binding: ActivityOrdersBinding
     private lateinit var ordersAdapter: OrdersAdapter
     private val orders = mutableListOf<Order>()
     private val db = FirebaseFirestore.getInstance()
     
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

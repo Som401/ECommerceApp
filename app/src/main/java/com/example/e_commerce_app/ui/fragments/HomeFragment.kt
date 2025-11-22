@@ -75,11 +75,15 @@ class HomeFragment : Fragment() {
                         else -> fallbackName()
                     }
                     android.util.Log.d("UserDebug", "Resolved greeting name='$resolved' userId=$userId")
-                    binding.tvUserName.text = "Hello, ${resolved}!"
+                    if (_binding != null) {
+                        binding.tvUserName.text = "Hello, ${resolved}!"
+                    }
                 } catch (e: Exception) {
                     android.util.Log.w("UserDebug", "Failed to fetch username: ${e.message}")
                     val resolved = fallbackName()
-                    binding.tvUserName.text = "Hello, ${resolved}!"
+                    if (_binding != null) {
+                        binding.tvUserName.text = "Hello, ${resolved}!"
+                    }
                 }
             }
         } else {
@@ -136,34 +140,52 @@ class HomeFragment : Fragment() {
     }
     
     private fun loadSampleData() {
-        binding.progressBar?.visibility = View.VISIBLE
+        // Safely access binding
+        if (_binding == null) return
+        binding.progressBar.visibility = View.VISIBLE
+        
+        // Set operation in progress to block navigation
+        (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.isOperationInProgress = true
         
         lifecycleScope.launch {
             try {
-                // Use ProductCache - fetches only once
-                val allProducts = ProductCache.getProducts()
-                android.util.Log.d("ProductDebug", "HomeFragment loaded ${allProducts.size} products from cache")
-                
-                // Split products into two halves deterministically
-                val midpoint = allProducts.size / 2
-                val firstHalf = allProducts.take(midpoint)
-                val secondHalf = allProducts.drop(midpoint)
-                android.util.Log.d("ProductDebug", "HomeFragment split firstHalf=${firstHalf.size} secondHalf=${secondHalf.size}")
-                newProductsAdapter.updateProducts(firstHalf)
-                featuredProductsAdapter.updateProducts(secondHalf)
-                android.util.Log.d("ProductDebug", "Adapters updated new=${newProductsAdapter.itemCount} featured=${featuredProductsAdapter.itemCount}")
-                    // Show on-screen confirmation for debugging
-                    try {
-                        val msg = if (allProducts.isEmpty()) "No products fetched" else "Fetched ${allProducts.size} products, first=${allProducts[0].name}"
-                        android.util.Log.i("ProductDebug", msg)
-                    } catch (t: Throwable) {
-                        android.util.Log.w("ProductDebug", "Toast failed: ${t.message}")
+                // 6 seconds timeout
+                kotlinx.coroutines.withTimeout(6000L) {
+                    // Use ProductCache - fetches only once
+                    val allProducts = ProductCache.getProducts()
+                    
+                    // Check binding before updating UI
+                    if (_binding != null) {
+                        android.util.Log.d("ProductDebug", "HomeFragment loaded ${allProducts.size} products from cache")
+                        
+                        // Split products into two halves deterministically
+                        val midpoint = allProducts.size / 2
+                        val firstHalf = allProducts.take(midpoint)
+                        val secondHalf = allProducts.drop(midpoint)
+                        
+                        newProductsAdapter.updateProducts(firstHalf)
+                        featuredProductsAdapter.updateProducts(secondHalf)
                     }
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                android.util.Log.w("ProductDebug", "HomeFragment load timeout")
+                if (_binding != null) {
+                    (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.showSlowInternetDialog(
+                        onRetry = { loadSampleData() },
+                        onWait = { /* User chose to wait, maybe do nothing or extend timeout */ }
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 android.util.Log.e("ProductDebug", "HomeFragment load error: ${e.message}")
             } finally {
-                binding.progressBar?.visibility = View.GONE
+                // Reset operation flag
+                (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.isOperationInProgress = false
+                
+                // Safely hide progress bar
+                if (_binding != null) {
+                    binding.progressBar.visibility = View.GONE
+                }
             }
         }
     }

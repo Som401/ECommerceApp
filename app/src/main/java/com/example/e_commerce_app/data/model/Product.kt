@@ -26,12 +26,6 @@ data class Product(
     // Get formatted price with currency symbol
     fun getFormattedPrice(currency: String = "USD"): String {
         val finalPrice = getPriceAfterDiscount()
-        return when (currency) {
-            "EUR" -> {
-                val euroPrice = finalPrice * 0.92 // Fixed rate: 1 USD = 0.92 EUR
-                "€${String.format("%.2f", euroPrice)}"
-            }
-            else -> "$${String.format("%.2f", finalPrice)}"
-        }
+        return com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(finalPrice, currency)
     }
 }

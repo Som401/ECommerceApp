@@ -31,7 +31,7 @@
     <string name="category_sneakers">Sneakers</string>
     <string name="category_sports">Sports</string>
     <string name="category_casual">Casual</string>
-    <string name="all_products">All Products</string>
+    <string name="all_products">All</string>
     <string name="product_details">Product Details</string>
     <string name="add_to_cart">Add to Cart</string>
     <string name="add_to_wishlist">Add to Wishlist</string>
@@ -78,10 +78,19 @@
     <string name="purchases">Purchases</string>
     <string name="wishlist_items">Wishlist Items</string>
     <string name="cart_items">Cart Items</string>
+    <string name="quick_stats">Quick Stats</string>
+    <string name="total_orders">Total Orders</string>
+    <string name="actions">Actions</string>
 
     <!-- Orders -->
     <string name="orders">Orders</string>
     <string name="no_orders">No orders yet</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="no_internet_message">Please check your internet connection and try again.</string>
+    <string name="slow_internet">Slow Internet Connection</string>
+    <string name="slow_internet_message">It seems your connection is slow. Would you like to wait or try again?</string>
+    <string name="wait">Wait</string>
+    <string name="try_again">Try Again</string>
     <string name="order_number">Order #%1$s</string>
     <string name="order_date">Date: %1$s</string>
     <string name="order_status">Status: %1$s</string>
@@ -136,6 +145,22 @@
     <string name="english">English</string>
     <string name="french">French</string>
     <string name="switch_language">Switch Language</string>
+
+    <!-- Home -->
+    <string name="welcome_message">Welcome</string>
+    <string name="shopper_name">Shopper!</string>
+    <string name="new_collection">New Collection</string>
+    <string name="discover_latest">Discover our latest arrivals</string>
+    <string name="shop_now">Shop Now</string>
+    <string name="new_arrivals">New Arrivals</string>
+    <string name="view_all">View All</string>
+    <string name="featured">Featured</string>
+
+    <!-- Shop -->
+    <string name="shop_shoes">Shop Shoes</string>
+    <string name="no_products_found">No products found</string>
+
+
 
     <!-- Legacy/Template Strings (unused but required by templates) -->
     <string name="action_settings">Settings</string>

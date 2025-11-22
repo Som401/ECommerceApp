@@ -7,10 +7,10 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Patterns
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import com.example.e_commerce_app.MainActivity
 import com.example.e_commerce_app.data.model.User
 import com.example.e_commerce_app.databinding.ActivitySignUpBinding
+import com.example.e_commerce_app.ui.activities.BaseActivity
 import com.example.e_commerce_app.utils.Extensions.showToast
 import com.example.e_commerce_app.utils.FirebaseManager
 import com.example.e_commerce_app.utils.LocaleHelper
@@ -20,14 +20,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-class SignUpActivity : AppCompatActivity() {
+class SignUpActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
     private val userCollection = FirebaseManager.firestore.collection("Users")
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

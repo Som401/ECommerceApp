@@ -1,25 +1,19 @@
 package com.example.e_commerce_app
 
-import android.content.Context
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.e_commerce_app.databinding.ActivityMainBinding
+import com.example.e_commerce_app.ui.activities.BaseActivity
 import com.example.e_commerce_app.ui.fragments.HomeFragment
 import com.example.e_commerce_app.ui.fragments.ShopFragment
 import com.example.e_commerce_app.ui.fragments.BagFragment
 import com.example.e_commerce_app.ui.fragments.FavoritesFragment
 import com.example.e_commerce_app.ui.fragments.ProfileFragment
-import com.example.e_commerce_app.utils.LocaleHelper
 import com.google.android.material.navigation.NavigationBarView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LocaleHelper.applyLanguage(newBase))
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +30,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val navListener = NavigationBarView.OnItemSelectedListener { item ->
+        if (!com.example.e_commerce_app.utils.NetworkUtils.isInternetAvailable(this)) {
+            showNoInternetDialog()
+            return@OnItemSelectedListener false
+        }
+        
+        if (isOperationInProgress) {
+            android.widget.Toast.makeText(this, "Please wait, loading...", android.widget.Toast.LENGTH_SHORT).show()
+            return@OnItemSelectedListener false
+        }
+
         val fragment: Fragment = when (item.itemId) {
             R.id.nav_home -> HomeFragment()
             R.id.nav_shop -> ShopFragment()
