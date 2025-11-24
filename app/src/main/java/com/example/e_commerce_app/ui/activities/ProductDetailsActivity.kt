@@ -107,13 +107,13 @@ class ProductDetailsActivity : BaseActivity() {
             tvProductDescription.text = product.description
             
             if (product.discount > 0) {
-                tvProductPrice.text = "$${product.getPriceAfterDiscount()}"
-                tvOriginalPrice.text = "$${product.price}"
+                tvProductPrice.text = product.getFormattedPrice(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
+                tvOriginalPrice.text = com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(product.price, com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
                 tvOriginalPrice.visibility = View.VISIBLE
                 tvDiscount.text = "${product.discount}% OFF"
                 tvDiscount.visibility = View.VISIBLE
             } else {
-                tvProductPrice.text = "$${product.price}"
+                tvProductPrice.text = product.getFormattedPrice(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
                 tvOriginalPrice.visibility = View.GONE
                 tvDiscount.visibility = View.GONE
             }

@@ -192,6 +192,15 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        
+        // Update currency in case it changed while away
+        if (::newProductsAdapter.isInitialized) {
+            newProductsAdapter.updateCurrency(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
+        }
+        if (::featuredProductsAdapter.isInitialized) {
+            featuredProductsAdapter.updateCurrency(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
+        }
+
         // Only reload if cache is empty (avoids redundant fetches)
         lifecycleScope.launch {
             if (newProductsAdapter.itemCount == 0 || featuredProductsAdapter.itemCount == 0) {

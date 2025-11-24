@@ -16,23 +16,11 @@ data class CartItem(
     fun getTotalPrice(): Double = price * quantity
     
     fun getFormattedPrice(currency: String = "USD"): String {
-        return when (currency) {
-            "EUR" -> {
-                val euroPrice = price * 0.92
-                "€${String.format("%.2f", euroPrice)}"
-            }
-            else -> "$${String.format("%.2f", price)}"
-        }
+        return com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(price, currency)
     }
     
     fun getFormattedTotal(currency: String = "USD"): String {
         val total = getTotalPrice()
-        return when (currency) {
-            "EUR" -> {
-                val euroTotal = total * 0.92
-                "€${String.format("%.2f", euroTotal)}"
-            }
-            else -> "$${String.format("%.2f", total)}"
-        }
+        return com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(total, currency)
     }
 }

@@ -89,7 +89,7 @@ class ShopFragment : Fragment() {
                 CurrencyPreference.saveUserCurrency(currentCurrency)
                 
                 // Refresh product display
-                productAdapter.notifyDataSetChanged()
+                productAdapter.updateCurrency(currentCurrency)
             }
         }
     }
@@ -108,7 +108,8 @@ class ShopFragment : Fragment() {
                 currentCurrency = prefCurrency
                 binding.btnCurrencySwitch.text = currentCurrency
                 GlobalCurrency.setCurrency(currentCurrency)
-                productAdapter.notifyDataSetChanged()
+                // productAdapter.notifyDataSetChanged()
+                productAdapter.updateCurrency(currentCurrency)
             }
         }
     }

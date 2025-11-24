@@ -22,12 +22,7 @@ class OrdersAdapter(
                 tvOrderStatus.text = order.status
                 
                 // Apply currency conversion
-                val currency = GlobalCurrency.currentCurrency
-                val symbol = if (currency == "EUR") "€" else "$"
-                val rate = if (currency == "EUR") 0.92 else 1.0
-                val convertedTotal = order.total * rate
-                
-                tvOrderTotal.text = "$symbol${"%.2f".format(convertedTotal)}"
+                tvOrderTotal.text = com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(order.total, com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
                 tvItemCount.text = "${order.items.size} item${if (order.items.size > 1) "s" else ""}"
                 
                 // Set status color

@@ -19,6 +19,13 @@ class ProductGridAdapter(
     private val onProductClick: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductGridAdapter.ProductViewHolder>() {
 
+    var currentCurrency: String = GlobalCurrency.currentCurrency
+
+    fun updateCurrency(newCurrency: String) {
+        currentCurrency = newCurrency
+        notifyDataSetChanged()
+    }
+
     inner class ProductViewHolder(private val binding: ItemProductBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
@@ -26,7 +33,7 @@ class ProductGridAdapter(
             binding.apply {
                 tvProductName.text = product.name
                 tvProductBrand.text = product.brand
-                tvProductPrice.text = product.getFormattedPrice(GlobalCurrency.currentCurrency)
+                tvProductPrice.text = product.getFormattedPrice(currentCurrency)
                 
                 ratingBar.rating = product.rating
                 

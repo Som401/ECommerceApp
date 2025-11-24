@@ -125,18 +125,9 @@ class BagFragment : Fragment() {
             val total = subtotal + shipping
             
             val currency = GlobalCurrency.currentCurrency
-            binding.tvSubtotal.text = when (currency) {
-                "EUR" -> "€${String.format("%.2f", subtotal * 0.92)}"
-                else -> "$${String.format("%.2f", subtotal)}"
-            }
-            binding.tvShipping.text = when (currency) {
-                "EUR" -> "€${String.format("%.2f", shipping * 0.92)}"
-                else -> "$${String.format("%.2f", shipping)}"
-            }
-            binding.tvTotal.text = when (currency) {
-                "EUR" -> "€${String.format("%.2f", total * 0.92)}"
-                else -> "$${String.format("%.2f", total)}"
-            }
+            binding.tvSubtotal.text = CurrencyConverter.convertAndFormat(subtotal, currency)
+            binding.tvShipping.text = CurrencyConverter.convertAndFormat(shipping, currency)
+            binding.tvTotal.text = CurrencyConverter.convertAndFormat(total, currency)
         }
     }
     

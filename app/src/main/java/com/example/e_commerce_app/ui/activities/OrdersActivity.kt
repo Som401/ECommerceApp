@@ -14,6 +14,7 @@ import com.example.e_commerce_app.ui.adapters.OrdersAdapter
 import com.example.e_commerce_app.utils.CurrencyConverter
 import com.example.e_commerce_app.utils.FirebaseManager
 import com.example.e_commerce_app.utils.LocaleHelper
+import com.example.e_commerce_app.utils.GlobalCurrency
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
@@ -113,7 +114,7 @@ class OrdersActivity : BaseActivity() {
         val shareText = buildString {
             append("📦 Order #${order.id.takeLast(8)}\n")
             append("📅 Date: ${order.getFormattedDate()}\n")
-            append("💵 Total: ${CurrencyConverter.formatPrice(order.total, "USD")}\n")
+            append("💵 Total: ${CurrencyConverter.convertAndFormat(order.total, GlobalCurrency.currentCurrency)}\n")
             append("📊 Status: ${order.status}\n")
             append("🛍️ Items: ${order.items.size}\n\n")
             append("Items:\n")
