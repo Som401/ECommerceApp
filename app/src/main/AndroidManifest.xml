@@ -58,6 +58,14 @@
             android:name=".ui.activities.OrdersActivity"
             android:exported="false"
             android:theme="@style/Theme.ECommerceApp" />
+        
+        <!-- About Activity -->
+        <activity
+            android:name=".ui.activities.AboutActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.ECommerceApp" />
+        
         <!-- Service for persisting application locales -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

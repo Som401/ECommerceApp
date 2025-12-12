@@ -126,7 +126,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/view_all"
                 android:textColor="@color/primary"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -169,7 +175,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/view_all"
                 android:textColor="@color/primary"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

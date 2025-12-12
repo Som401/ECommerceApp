@@ -109,13 +109,10 @@ class ProductDetailsActivity : BaseActivity() {
             if (product.discount > 0) {
                 tvProductPrice.text = product.getFormattedPrice(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
                 tvOriginalPrice.text = com.example.e_commerce_app.utils.CurrencyConverter.convertAndFormat(product.price, com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
-                tvOriginalPrice.visibility = View.VISIBLE
+                // Keep original price and discount hidden
                 tvDiscount.text = "${product.discount}% OFF"
-                tvDiscount.visibility = View.VISIBLE
             } else {
                 tvProductPrice.text = product.getFormattedPrice(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
-                tvOriginalPrice.visibility = View.GONE
-                tvDiscount.visibility = View.GONE
             }
             
             ratingBar.rating = product.rating
@@ -148,6 +145,7 @@ class ProductDetailsActivity : BaseActivity() {
             }
             
             tvGender.text = "Gender: ${product.gender}"
+            // Store stock info but keep it hidden
             tvStock.text = if (product.inStock) "In Stock (${product.stock})" else "Out of Stock"
         }
     }
@@ -171,15 +169,13 @@ class ProductDetailsActivity : BaseActivity() {
             if (discount > 0) {
                 binding.tvProductPrice.text = "$${price - (price * discount / 100)}"
                 binding.tvOriginalPrice.text = "$${price}"
-                binding.tvOriginalPrice.visibility = View.VISIBLE
+                // Keep original price and discount hidden
                 binding.tvDiscount.text = "${discount}% OFF"
-                binding.tvDiscount.visibility = View.VISIBLE
             } else {
                 binding.tvProductPrice.text = "$${price}"
-                binding.tvOriginalPrice.visibility = View.GONE
-                binding.tvDiscount.visibility = View.GONE
             }
             val stock = intent.getIntExtra("PRODUCT_STOCK_FALLBACK", 0)
+            // Store stock info but keep it hidden
             binding.tvStock.text = if (stock > 0) "In Stock (${stock})" else "Out of Stock"
             val gender = intent.getStringExtra("PRODUCT_GENDER_FALLBACK") ?: ""
             if (gender.isNotEmpty()) binding.tvGender.text = "Gender: ${gender}" else binding.tvGender.text = ""

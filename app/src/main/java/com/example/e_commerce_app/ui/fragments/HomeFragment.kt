@@ -6,22 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.e_commerce_app.data.cache.ProductCache
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.databinding.FragmentHomeBinding
 import com.example.e_commerce_app.ui.activities.ProductDetailsActivity
 import com.example.e_commerce_app.ui.adapters.ProductAdapter
-import com.example.e_commerce_app.utils.FirebaseManager
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import com.example.e_commerce_app.ui.viewmodel.HomeViewModel
 
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: HomeViewModel by viewModels()
     
     private lateinit var newProductsAdapter: ProductAdapter
     private lateinit var featuredProductsAdapter: ProductAdapter
@@ -41,64 +38,58 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        setupUI()
         setupRecyclerViews()
-        loadSampleData()
+        setupObservers()
+        setupUI()
+        viewModel.loadAllData()
+    }
+    
+    private fun setupObservers() {
+        // Observe user name
+        viewModel.userName.observe(viewLifecycleOwner) { name ->
+            binding.tvUserName.text = "Hello, $name!"
+        }
+        
+        // Observe new products
+        viewModel.newProducts.observe(viewLifecycleOwner) { products ->
+            newProducts.clear()
+            newProducts.addAll(products)
+            newProductsAdapter.notifyDataSetChanged()
+        }
+        
+        // Observe featured products
+        viewModel.featuredProducts.observe(viewLifecycleOwner) { products ->
+            featuredProducts.clear()
+            featuredProducts.addAll(products)
+            featuredProductsAdapter.notifyDataSetChanged()
+        }
+        
+        // Observe loading state
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
     }
     
     private fun setupUI() {
-        // Resolve and greet with the actual user name
-        val firestore = FirebaseFirestore.getInstance()
-        val firebaseUser = FirebaseManager.currentUser
-        val userId = firebaseUser?.uid
-
-        fun fallbackName(): String {
-            val display = firebaseUser?.displayName?.takeIf { !it.isNullOrBlank() }
-            if (!display.isNullOrBlank()) return display
-            val emailName = firebaseUser?.email?.substringBefore('@')?.takeIf { !it.isNullOrBlank() }
-            if (!emailName.isNullOrBlank()) return emailName
-            return "Shopper"
-        }
-
-        if (userId != null) {
-            lifecycleScope.launch {
-                try {
-                    val userDoc = firestore.collection("Users").document(userId).get().await()
-                    val resolved = when {
-                        userDoc.exists() -> {
-                            // Prefer fullName (matches our User model), then common alternatives
-                            userDoc.getString("fullName")
-                                ?: userDoc.getString("name")
-                                ?: userDoc.getString("username")
-                                ?: fallbackName()
-                        }
-                        else -> fallbackName()
-                    }
-                    android.util.Log.d("UserDebug", "Resolved greeting name='$resolved' userId=$userId")
-                    if (_binding != null) {
-                        binding.tvUserName.text = "Hello, ${resolved}!"
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.w("UserDebug", "Failed to fetch username: ${e.message}")
-                    val resolved = fallbackName()
-                    if (_binding != null) {
-                        binding.tvUserName.text = "Hello, ${resolved}!"
-                    }
-                }
-            }
-        } else {
-            val resolved = "Shopper"
-            android.util.Log.d("UserDebug", "No logged-in user; using default name='$resolved'")
-            binding.tvUserName.text = "Hello, ${resolved}!"
-        }
-
         binding.btnShopNow.setOnClickListener {
-            // Navigate to shop fragment
-            parentFragmentManager.beginTransaction()
-                .replace(com.example.e_commerce_app.R.id.fragmentContainer, ShopFragment())
-                .addToBackStack(null)
-                .commit()
+            navigateToShop()
         }
+        
+        binding.tvViewAllNew.setOnClickListener {
+            navigateToShop()
+        }
+        
+        binding.tvViewAllFeatured.setOnClickListener {
+            navigateToShop()
+        }
+    }
+    
+    private fun navigateToShop() {
+        // Update bottom navigation to show Shop selected
+        val mainActivity = activity as? com.example.e_commerce_app.MainActivity
+        mainActivity?.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(
+            com.example.e_commerce_app.R.id.bottomNavigation
+        )?.selectedItemId = com.example.e_commerce_app.R.id.nav_shop
     }
     
     private fun setupRecyclerViews() {
@@ -138,57 +129,6 @@ class HomeFragment : Fragment() {
         intent.putExtra("PRODUCT_GENDER_FALLBACK", product.gender)
         startActivity(intent)
     }
-    
-    private fun loadSampleData() {
-        // Safely access binding
-        if (_binding == null) return
-        binding.progressBar.visibility = View.VISIBLE
-        
-        // Set operation in progress to block navigation
-        (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.isOperationInProgress = true
-        
-        lifecycleScope.launch {
-            try {
-                // 6 seconds timeout
-                kotlinx.coroutines.withTimeout(6000L) {
-                    // Use ProductCache - fetches only once
-                    val allProducts = ProductCache.getProducts()
-                    
-                    // Check binding before updating UI
-                    if (_binding != null) {
-                        android.util.Log.d("ProductDebug", "HomeFragment loaded ${allProducts.size} products from cache")
-                        
-                        // Split products into two halves deterministically
-                        val midpoint = allProducts.size / 2
-                        val firstHalf = allProducts.take(midpoint)
-                        val secondHalf = allProducts.drop(midpoint)
-                        
-                        newProductsAdapter.updateProducts(firstHalf)
-                        featuredProductsAdapter.updateProducts(secondHalf)
-                    }
-                }
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                android.util.Log.w("ProductDebug", "HomeFragment load timeout")
-                if (_binding != null) {
-                    (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.showSlowInternetDialog(
-                        onRetry = { loadSampleData() },
-                        onWait = { /* User chose to wait, maybe do nothing or extend timeout */ }
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                android.util.Log.e("ProductDebug", "HomeFragment load error: ${e.message}")
-            } finally {
-                // Reset operation flag
-                (activity as? com.example.e_commerce_app.ui.activities.BaseActivity)?.isOperationInProgress = false
-                
-                // Safely hide progress bar
-                if (_binding != null) {
-                    binding.progressBar.visibility = View.GONE
-                }
-            }
-        }
-    }
 
     override fun onResume() {
         super.onResume()
@@ -199,13 +139,6 @@ class HomeFragment : Fragment() {
         }
         if (::featuredProductsAdapter.isInitialized) {
             featuredProductsAdapter.updateCurrency(com.example.e_commerce_app.utils.GlobalCurrency.currentCurrency)
-        }
-
-        // Only reload if cache is empty (avoids redundant fetches)
-        lifecycleScope.launch {
-            if (newProductsAdapter.itemCount == 0 || featuredProductsAdapter.itemCount == 0) {
-                loadSampleData()
-            }
         }
     }
 

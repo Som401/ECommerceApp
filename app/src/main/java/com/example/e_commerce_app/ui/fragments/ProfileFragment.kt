@@ -15,24 +15,25 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.e_commerce_app.R
 import com.example.e_commerce_app.databinding.FragmentProfileBinding
 import com.example.e_commerce_app.ui.activities.OrdersActivity
 import com.example.e_commerce_app.ui.auth.LoginActivity
+import com.example.e_commerce_app.ui.viewmodel.ProfileViewModel
 import com.example.e_commerce_app.utils.LocaleHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: ProfileViewModel by viewModels()
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
     
     private var currentPhotoUri: Uri? = null
     private var pendingPhotoAction: (() -> Unit)? = null
@@ -44,7 +45,13 @@ class ProfileFragment : Fragment() {
         if (isGranted) {
             pendingPhotoAction?.invoke()
         } else {
-            Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT).show()
+            // Check if user permanently denied permission
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                // Permission permanently denied, show dialog to go to settings
+                showPermissionSettingsDialog("Camera")
+            } else {
+                Toast.makeText(requireContext(), "Camera permission denied", Toast.LENGTH_SHORT).show()
+            }
         }
         pendingPhotoAction = null
     }
@@ -56,7 +63,18 @@ class ProfileFragment : Fragment() {
         if (isGranted) {
             pendingPhotoAction?.invoke()
         } else {
-            Toast.makeText(requireContext(), "Gallery permission denied", Toast.LENGTH_SHORT).show()
+            // Check if user permanently denied permission
+            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Manifest.permission.READ_MEDIA_IMAGES
+            } else {
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            }
+            if (!shouldShowRequestPermissionRationale(permission)) {
+                // Permission permanently denied, show dialog to go to settings
+                showPermissionSettingsDialog("Gallery")
+            } else {
+                Toast.makeText(requireContext(), "Gallery permission denied", Toast.LENGTH_SHORT).show()
+            }
         }
         pendingPhotoAction = null
     }
@@ -98,75 +116,51 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        loadUserInfo()
-        loadStats()
+        setupObservers()
         setupClickListeners()
+        viewModel.loadUserProfile()
+        viewModel.loadUserStats()
     }
 
-    private fun loadUserInfo() {
-        val userId = auth.currentUser?.uid ?: return
-        val userEmail = auth.currentUser?.email
-        val displayName = auth.currentUser?.displayName
-
-        lifecycleScope.launch {
-            try {
-                val userDoc = firestore.collection("Users").document(userId).get().await()
-                
-                // Try multiple name fields in order of preference
-                val userName = userDoc.getString("fullName")
-                    ?: userDoc.getString("name")
-                    ?: userDoc.getString("username")
-                    ?: displayName
-                    ?: userEmail?.substringBefore('@')
-                    ?: "User"
-                
-                val photoUrl = userDoc.getString("photoUrl")
-                
-                binding.tvUserName.text = userName
-                binding.tvUserEmail.text = userEmail
-                
-                // Load profile photo from local storage if exists
-                if (!photoUrl.isNullOrEmpty()) {
-                    val file = java.io.File(photoUrl)
-                    if (file.exists()) {
-                        com.bumptech.glide.Glide.with(this@ProfileFragment)
-                            .load(file)
-                            .circleCrop()
-                            .placeholder(android.R.drawable.ic_menu_gallery)
-                            .into(binding.ivProfilePhoto)
-                    }
-                }
-                
-            } catch (e: Exception) {
-                binding.tvUserName.text = displayName ?: userEmail?.substringBefore('@') ?: "User"
-                binding.tvUserEmail.text = userEmail
+    private fun setupObservers() {
+        // Observe user name
+        viewModel.userName.observe(viewLifecycleOwner) { name ->
+            binding.tvUserName.text = name
+        }
+        
+        // Observe user email
+        viewModel.userEmail.observe(viewLifecycleOwner) { email ->
+            binding.tvUserEmail.text = email
+        }
+        
+        // Observe photo URL
+        viewModel.photoUrl.observe(viewLifecycleOwner) { url ->
+            if (!url.isNullOrEmpty()) {
+                loadProfilePhoto(url)
             }
+        }
+        
+        // Observe statistics
+        viewModel.purchasesCount.observe(viewLifecycleOwner) { count ->
+            binding.tvOrdersCount.text = count.toString()
+        }
+        
+        viewModel.wishlistCount.observe(viewLifecycleOwner) { count ->
+            binding.tvWishlistCount.text = count.toString()
+        }
+        
+        // Cart count is not displayed in the UI, but keeping the observer
+        viewModel.cartCount.observe(viewLifecycleOwner) { count ->
+            // Cart count can be used if needed in future
         }
     }
 
-    private fun loadStats() {
-        val userId = auth.currentUser?.uid ?: return
-        
-        lifecycleScope.launch {
-            try {
-                // Load orders count
-                val ordersSnapshot = firestore.collection("CompletedOrders")
-                    .whereEqualTo("userId", userId)
-                    .get()
-                    .await()
-                binding.tvOrdersCount.text = ordersSnapshot.size().toString()
-                
-                // Load wishlist count
-                val wishlistSnapshot = firestore.collection("Wishlist")
-                    .whereEqualTo("userId", userId)
-                    .get()
-                    .await()
-                binding.tvWishlistCount.text = wishlistSnapshot.size().toString()
-                
-            } catch (e: Exception) {
-                binding.tvOrdersCount.text = "0"
-                binding.tvWishlistCount.text = "0"
-            }
+    private fun loadProfilePhoto(url: String) {
+        try {
+            val uri = Uri.parse(url)
+            binding.ivProfilePhoto.setImageURI(uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -182,6 +176,12 @@ class ProfileFragment : Fragment() {
 
         binding.btnSwitchLanguage.setOnClickListener {
             showLanguageDialog()
+        }
+        
+        // About button opens the README/About screen
+        binding.btnAbout.setOnClickListener {
+            val intent = Intent(requireContext(), com.example.e_commerce_app.ui.activities.AboutActivity::class.java)
+            startActivity(intent)
         }
 
         binding.btnLogout.setOnClickListener {
@@ -290,13 +290,10 @@ class ProfileFragment : Fragment() {
                 val localPhotoPath = file.absolutePath
                 android.util.Log.d("ProfilePhoto", "Photo saved locally: $localPhotoPath")
                 
-                // Update Firestore with local file path
-                firestore.collection("Users")
-                    .document(userId)
-                    .update("photoUrl", localPhotoPath)
-                    .await()
+                // Update via ViewModel
+                viewModel.updatePhotoUrl(localPhotoPath)
                 
-                android.util.Log.d("ProfilePhoto", "Firestore updated with local path")
+                android.util.Log.d("ProfilePhoto", "Photo URL updated")
                 Toast.makeText(requireContext(), "Profile photo updated!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 android.util.Log.e("ProfilePhoto", "Save failed", e)
@@ -332,6 +329,23 @@ class ProfileFragment : Fragment() {
             dialog.dismiss()
         }
         builder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
+    }
+    
+    private fun showPermissionSettingsDialog(permissionType: String) {
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        builder.setTitle("Permission Required")
+        builder.setMessage("$permissionType permission is required to use this feature. Please enable it in the app settings.")
+        builder.setPositiveButton("Go to Settings") { _, _ ->
+            // Open app settings
+            val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", requireContext().packageName, null)
+            intent.data = uri
+            startActivity(intent)
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.dismiss()
         }
         builder.show()

@@ -160,6 +160,16 @@
     <string name="shop_shoes">Shop Shoes</string>
     <string name="no_products_found">No products found</string>
 
+    <!-- About/README Screen -->
+    <string name="about_app">About This App</string>
+    <string name="project_description_title">Project Description</string>
+    <string name="project_description_text">A full-featured e-commerce application for selling shoes. This project demonstrates modern Android development with MVVM architecture, Firebase integration, external API calls, localization, and more.</string>
+    <string name="group_members">Group Members</string>
+    <string name="key_features">Key Features</string>
+    <string name="features_list">• Product browsing with category filters\n• Shopping cart with size/color selection\n• Wishlist management\n• USD/EUR currency conversion via API\n• English &amp; French language support\n• User authentication with Firebase\n• Profile customization with photo upload\n• Order history tracking</string>
+    <string name="technical_details">Technical Details</string>
+    <string name="tech_details_text">• MVVM Architecture\n• Kotlin Coroutines\n• Firebase (Auth, Firestore)\n• External API (Currency Exchange)\n• Material Design\n• Instrumented Tests\n• Camera Permission\n• Implicit Intents</string>
+    <string name="version_info">Version 1.0 - Built with Kotlin</string>
 
 
     <!-- Legacy/Template Strings (unused but required by templates) -->

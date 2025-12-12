@@ -6,21 +6,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.e_commerce_app.data.cache.ProductCache
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.databinding.FragmentShopBinding
 import com.example.e_commerce_app.ui.adapters.ProductGridAdapter
+import com.example.e_commerce_app.ui.viewmodel.ShopViewModel
 import com.example.e_commerce_app.utils.CurrencyConverter
 import com.example.e_commerce_app.utils.CurrencyPreference
 import com.example.e_commerce_app.utils.GlobalCurrency
 import kotlinx.coroutines.launch
 
+/**
+ * ShopFragment - Main shopping screen with product grid and filters
+ * Uses ShopViewModel for MVVM architecture
+ */
 class ShopFragment : Fragment() {
     
     private var _binding: FragmentShopBinding? = null
     private val binding get() = _binding!!
+    
+    // ViewModel instance using Kotlin property delegation
+    private val viewModel: ShopViewModel by viewModels()
     
     private lateinit var productAdapter: ProductGridAdapter
     private var allProducts = listOf<Product>()
@@ -38,14 +47,33 @@ class ShopFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        // Initialize button text immediately
-        binding.btnCurrencySwitch.text = currentCurrency
-        
         setupRecyclerView()
         setupCategoryFilters()
         setupCurrencySwitch()
+        setupObservers()
         loadUserCurrency()
-        loadProducts()
+    }
+    
+    /**
+     * Setup LiveData observers for ViewModel
+     */
+    private fun setupObservers() {
+        // Observe filtered products
+        viewModel.filteredProducts.observe(viewLifecycleOwner) { products ->
+            productAdapter.updateProducts(products)
+        }
+        
+        // Observe currency changes
+        viewModel.currentCurrency.observe(viewLifecycleOwner) { currency ->
+            currentCurrency = currency
+            binding.btnCurrencySwitch.text = currency
+            productAdapter.notifyDataSetChanged()
+        }
+        
+        // Observe loading state
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
     }
     
     private fun setupRecyclerView() {
@@ -71,26 +99,23 @@ class ShopFragment : Fragment() {
                 binding.chipCasual.id -> "Casual"
                 else -> "All"
             }
-            filterProducts(category)
+            // Use ViewModel to filter products
+            viewModel.applyFilter(category)
         }
     }
     
     private fun setupCurrencySwitch() {
         binding.btnCurrencySwitch.setOnClickListener {
+            // Toggle currency via ViewModel
+            viewModel.toggleCurrency()
+            
+            // Save preference
             lifecycleScope.launch {
-                // Toggle currency
-                currentCurrency = if (currentCurrency == "USD") "EUR" else "USD"
-                binding.btnCurrencySwitch.text = currentCurrency
-                
-                // Update global currency
-                GlobalCurrency.setCurrency(currentCurrency)
-                
-                // Save preference
-                CurrencyPreference.saveUserCurrency(currentCurrency)
-                
-                // Refresh product display
-                productAdapter.updateCurrency(currentCurrency)
+                CurrencyPreference.saveUserCurrency(viewModel.getCurrency())
             }
+            
+            // Refresh product display
+            productAdapter.updateCurrency(viewModel.getCurrency())
         }
     }
     
@@ -99,55 +124,12 @@ class ShopFragment : Fragment() {
             // Fetch exchange rate in background
             CurrencyConverter.fetchExchangeRate()
             
-            // Load user's preferred currency if not already set by GlobalCurrency
-            // But GlobalCurrency is the source of truth for the session
+            // Load user's preferred currency
             val prefCurrency = CurrencyPreference.getUserCurrency()
-            
-            // Only update if different and GlobalCurrency hasn't changed in the meantime
             if (prefCurrency != currentCurrency) {
-                currentCurrency = prefCurrency
-                binding.btnCurrencySwitch.text = currentCurrency
-                GlobalCurrency.setCurrency(currentCurrency)
-                // productAdapter.notifyDataSetChanged()
-                productAdapter.updateCurrency(currentCurrency)
+                GlobalCurrency.setCurrency(prefCurrency)
+                productAdapter.updateCurrency(prefCurrency)
             }
-        }
-    }
-    
-    private fun loadProducts() {
-        binding.progressBar.visibility = View.VISIBLE
-        
-        lifecycleScope.launch {
-            // Use ProductCache - fetches only once
-            allProducts = ProductCache.getProducts()
-            
-            binding.progressBar.visibility = View.GONE
-            
-            if (allProducts.isEmpty()) {
-                binding.tvEmptyState.visibility = View.VISIBLE
-                binding.rvProducts.visibility = View.GONE
-            } else {
-                binding.tvEmptyState.visibility = View.GONE
-                binding.rvProducts.visibility = View.VISIBLE
-                productAdapter.updateProducts(allProducts)
-            }
-        }
-    }
-    
-    private fun filterProducts(category: String) {
-        val filtered = if (category == "All") {
-            allProducts
-        } else {
-            allProducts.filter { it.category == category }
-        }
-        productAdapter.updateProducts(filtered)
-        
-        if (filtered.isEmpty()) {
-            binding.tvEmptyState.visibility = View.VISIBLE
-            binding.rvProducts.visibility = View.GONE
-        } else {
-            binding.tvEmptyState.visibility = View.GONE
-            binding.rvProducts.visibility = View.VISIBLE
         }
     }
     

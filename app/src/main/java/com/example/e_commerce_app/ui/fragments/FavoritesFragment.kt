@@ -6,22 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.e_commerce_app.data.cache.WishlistCache
 import com.example.e_commerce_app.data.model.Product
 import com.example.e_commerce_app.databinding.FragmentFavoritesBinding
 import com.example.e_commerce_app.ui.adapters.ProductGridAdapter
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
+import com.example.e_commerce_app.ui.viewmodel.FavoritesViewModel
 
+/**
+ * Fragment displaying user's wishlist using MVVM architecture
+ */
 class FavoritesFragment : Fragment() {
     private var _binding: FragmentFavoritesBinding? = null
     private val binding get() = _binding!!
-    private val auth = FirebaseAuth.getInstance()
+    private val viewModel: FavoritesViewModel by viewModels()
     private lateinit var adapter: ProductGridAdapter
     private val wishlistProducts = mutableListOf<Product>()
-    private var isViewCreated = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,8 +35,31 @@ class FavoritesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        isViewCreated = true
-        // Don't load here - let onResume handle it
+        setupObservers()
+        viewModel.loadWishlistItems()
+    }
+
+    /**
+     * Setup LiveData observers for ViewModel
+     */
+    private fun setupObservers() {
+        // Observe wishlist items
+        viewModel.wishlistItems.observe(viewLifecycleOwner) { items ->
+            wishlistProducts.clear()
+            wishlistProducts.addAll(items)
+            adapter.notifyDataSetChanged()
+        }
+        
+        // Observe empty state
+        viewModel.isEmpty.observe(viewLifecycleOwner) { isEmpty ->
+            binding.tvEmptyWishlist.visibility = if (isEmpty) View.VISIBLE else View.GONE
+            binding.rvWishlist.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        }
+        
+        // Observe loading state
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
     }
 
     private fun setupRecyclerView() {
@@ -52,73 +75,13 @@ class FavoritesFragment : Fragment() {
         binding.rvWishlist.adapter = adapter
     }
 
-    private fun loadWishlist() {
-        val userId = auth.currentUser?.uid
-        android.util.Log.d("WishlistDebug", "FavoritesFragment: Loading wishlist from cache for userId=$userId")
-        
-        if (userId == null) {
-            android.util.Log.e("WishlistDebug", "FavoritesFragment: No user logged in!")
-            return
-        }
-        
-        binding.progressBar.visibility = View.VISIBLE
-
-        lifecycleScope.launch {
-            try {
-                // Use WishlistCache - fetches only once, then uses cached data
-                val products = WishlistCache.getWishlistProducts()
-                android.util.Log.d("WishlistDebug", "FavoritesFragment: Received ${products.size} products from cache")
-                
-                wishlistProducts.clear()
-                wishlistProducts.addAll(products)
-                
-                adapter.notifyDataSetChanged()
-                updateEmptyState()
-                android.util.Log.d("WishlistDebug", "FavoritesFragment: UI updated with ${wishlistProducts.size} products")
-            } catch (e: Exception) {
-                android.util.Log.e("WishlistDebug", "FavoritesFragment: Error loading wishlist: ${e.message}", e)
-                e.printStackTrace()
-            } finally {
-                binding.progressBar.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun removeFromWishlist(product: Product) {
-        lifecycleScope.launch {
-            try {
-                // Remove via WishlistCache - updates both local cache and Firebase
-                WishlistCache.removeFromWishlist(product.id)
-                wishlistProducts.remove(product)
-                adapter.notifyDataSetChanged()
-                updateEmptyState()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun updateEmptyState() {
-        if (wishlistProducts.isEmpty()) {
-            binding.tvEmptyWishlist.visibility = View.VISIBLE
-            binding.rvWishlist.visibility = View.GONE
-        } else {
-            binding.tvEmptyWishlist.visibility = View.GONE
-            binding.rvWishlist.visibility = View.VISIBLE
-        }
-    }
-
     override fun onResume() {
         super.onResume()
-        // Only load if view has been created
-        if (isViewCreated) {
-            loadWishlist()
-        }
+        viewModel.loadWishlistItems()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        isViewCreated = false
         _binding = null
     }
 }

@@ -178,6 +178,17 @@
     <string name="category_sports">Sport</string>
     <string name="category_casual">Décontracté</string>
 
+    <!-- About/README Screen -->
+    <string name="about_app">À propos de cette application</string>
+    <string name="project_description_title">Description du projet</string>
+    <string name="project_description_text">Une application e-commerce complète pour la vente de chaussures. Ce projet démontre le développement Android moderne avec l\'architecture MVVM, l\'intégration Firebase, les appels API externes, la localisation et plus encore.</string>
+    <string name="group_members">Membres du groupe</string>
+    <string name="key_features">Fonctionnalités clés</string>
+    <string name="features_list">• Navigation de produits avec filtres de catégories\n• Panier avec sélection de taille/couleur\n• Gestion de la liste de souhaits\n• Conversion USD/EUR via API\n• Support anglais et français\n• Authentification utilisateur avec Firebase\n• Personnalisation du profil avec téléchargement de photo\n• Suivi de l\'historique des commandes</string>
+    <string name="technical_details">Détails techniques</string>
+    <string name="tech_details_text">• Architecture MVVM\n• Kotlin Coroutines\n• Firebase (Auth, Firestore)\n• API externe (Conversion de devises)\n• Material Design\n• Tests instrumentés\n• Permission caméra\n• Intents implicites</string>
+    <string name="version_info">Version 1.0 - Construit avec Kotlin</string>
+
     <!-- Legacy/Template Strings (unused but required by templates) -->
     <string name="action_settings">Paramètres</string>
     <string name="first_fragment_label">Premier Fragment</string>
