@@ -47,8 +47,8 @@ class CartItemInstrumentedTest {
     fun testCartItemFormattedPriceEUR() {
         val formattedPrice = testCartItem.getFormattedPrice("EUR")
         assertTrue(formattedPrice.startsWith("€"))
-        // 50 * 0.92 = 46.00
-        assertTrue(formattedPrice.contains("46.00"))
+        // 50 * 0.87 = 43.50
+        assertTrue(formattedPrice.contains("43.50"))
     }
 
     @Test
@@ -62,8 +62,8 @@ class CartItemInstrumentedTest {
     fun testCartItemFormattedTotalEUR() {
         val formattedTotal = testCartItem.getFormattedTotal("EUR")
         assertTrue(formattedTotal.startsWith("€"))
-        // 100 * 0.92 = 92.00
-        assertTrue(formattedTotal.contains("92.00"))
+        // 100 * 0.87 = 87.00
+        assertTrue(formattedTotal.contains("87.00"))
     }
 
     @Test

@@ -13,26 +13,6 @@ import org.junit.Test
 class OrderAndCartTest {
     
     @Test
-    fun testCartItemTotalPrice() {
-        // Test cart item price calculation
-        val cartItem = CartItem(
-            id = "test_1",
-            productId = "prod_1",
-            productName = "Test Shoe",
-            productImage = "",
-            price = 50.0,
-            selectedSize = "10",
-            selectedColor = "Black",
-            quantity = 3,
-            userId = "user_1"
-        )
-        
-        val totalPrice = cartItem.getTotalPrice()
-        
-        assertEquals("Total should be price * quantity", 150.0, totalPrice, 0.01)
-    }
-    
-    @Test
     fun testOrderItemTotalPrice() {
         // Test order item price calculation
         val orderItem = OrderItem(

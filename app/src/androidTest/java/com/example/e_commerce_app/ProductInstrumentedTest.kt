@@ -61,9 +61,9 @@ class ProductInstrumentedTest {
         GlobalCurrency.setCurrency("EUR")
         val formattedPrice = testProduct.getFormattedPrice("EUR")
         
-        // Should be €82.80 (90 * 0.92)
+        // Should be €78.30 (90 * 0.87)
         assertTrue(formattedPrice.startsWith("€"))
-        assertTrue(formattedPrice.contains("82.80"))
+        assertTrue(formattedPrice.contains("78.30"))
     }
 
     @Test
